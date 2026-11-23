@@ -4,8 +4,10 @@
 set -e
 cd "$(dirname "$0")"
 V=$(date +%Y%m%d%H%M%S)
-sed -i '' -E "s/(name=\"app-version\" content=\")[^\"]*\"/\1$V\"/" index.html
-grep -q "content=\"$V\"" index.html
+sed -i '' -E "s/^(<meta name=\"app-version\" content=\")[^\"]*(\">)$/\1$V\2/" index.html
+grep -q "^<meta name=\"app-version\" content=\"$V\">$" index.html
+# refuse to publish if the app code no longer parses
+awk '/<script>/{f=1;next}/<\/script>/{f=0}f' index.html > /tmp/claude-502/gas-app-check.js && node --check /tmp/claude-502/gas-app-check.js
 git add index.html "$@"
 git commit -q -m "${MSG:-Update app} (v$V)
 
