@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gas</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-title" content="Gas">
+<meta name="theme-color" content="#181614">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<style>
+  :root { color-scheme: dark; }
+  body { margin:0; min-height:100vh; display:grid; place-items:center; background:#181614; color:#f2f2f2;
+         font:16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align:center; }
+  main { padding:24px 20px; max-width:360px; }
+  img { width:96px; height:96px; border-radius:22px; }
+  h1 { font-size:22px; margin:16px 0 8px; }
+  p { color:#b5b0aa; margin:8px 0; }
+  a.btn { display:inline-block; margin-top:16px; padding:12px 20px; border-radius:12px; background:#e0622b; color:#fff;
+          text-decoration:none; font-weight:600; min-height:44px; box-sizing:border-box; }
+  #install { display:none; }
+  ol { text-align:left; color:#d8d3cc; padding-left:20px; }
+</style>
+</head>
+<body>
+<main>
+  <img src="icon-192.png" alt="">
+  <h1>Heating &amp; gas</h1>
+  <div id="install">
+    <p>Add this page to your Home Screen:</p>
+    <ol>
+      <li>Tap the <strong>Share</strong> button in Safari.</li>
+      <li>Choose <strong>Add to Home Screen</strong>.</li>
+      <li>Keep the name <strong>Gas</strong> and tap <strong>Add</strong>.</li>
+    </ol>
+    <p>The new icon opens your dashboard directly.</p>
+  </div>
+  <p id="go">Opening your dashboard…</p>
+  <a class="btn" id="link" href="https://script.google.com/macros/s/AKfycbzsMgWjkXWzbay8kxhFHKT-rIX46-usNDv8eZwpM2qNbwtBiZMZypx8FmUl5Dnqdce3/exec">Open dashboard</a>
+</main>
+<script>
+  // Open this page once as .../?install to see the instructions; the address is cleaned
+  // so the saved Home Screen shortcut points at the plain page, which forwards straight on.
+  var DASHBOARD = document.getElementById('link').href;
+  if (/[?&]install\b/.test(location.search)) {
+    document.getElementById('install').style.display = 'block';
+    document.getElementById('go').style.display = 'none';
+    history.replaceState(null, '', location.pathname);
+  } else {
+    location.replace(DASHBOARD);
+  }
+</script>
+</body>
+</html>
