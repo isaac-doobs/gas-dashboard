@@ -249,7 +249,7 @@
   // ---------------- formatting ----------------
   function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
   function num(n, d) { if (n === '' || n === null || n === undefined || isNaN(n)) return '–'; d = d === undefined ? 1 : d; return Number(n).toLocaleString('ro-RO', { minimumFractionDigits: d, maximumFractionDigits: d }); }
-  function hm(min) { min = Math.round(min); var h = Math.floor(min / 60), mm = min % 60; return h ? h + ' h ' + (mm < 10 ? '0' : '') + mm + ' m' : mm + ' min'; }
+  function hm(min) { min = Math.round(min); var h = Math.floor(min / 60), mm = min % 60; return h >= 10 ? h + ' h' : h ? h + ' h ' + (mm < 10 ? '0' : '') + mm + ' m' : mm + ' min'; }
   function dateOf(s) { return new Date(String(s).replace(' ', 'T')); }
   function keyOf(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
   function dShort(d) { return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); }
@@ -431,7 +431,9 @@
       options: base({ scales: { y: { min: bottom, max: top }, x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 5 } } } }),
     }, rec.length >= 2);
 
-    var withOut = days.filter(function (r) { return r[6] !== '' && r[8] !== ''; });
+    var todayKey = keyOf(new Date(dateOf(DATA.now)));
+    var fullDays = days.filter(function (r) { return r[0] !== todayKey; }); // today is still running
+    var withOut = fullDays.filter(function (r) { return r[6] !== '' && r[8] !== ''; });
     draw('cScatter', {
       type: 'scatter',
       data: { datasets: [{ data: withOut.map(function (r) { return { x: r[6], y: r[8], d: r[0] }; }), backgroundColor: css('--heat'), pointRadius: 5 }] },
@@ -439,7 +441,7 @@
         plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return dShort(dateOf(c.raw.d)) + ': ' + num(c.raw.y) + ' kWh at ' + num(c.raw.x) + '°C'; } } } },
         scales: { x: { title: { display: true, text: 'Avg outside °C' } }, y: { beginAtZero: true, title: { display: true, text: 'kWh' } } } }),
     }, withOut.length >= 3);
-    var eff = days.filter(function (r) { return r[11] !== '' && Number(r[7]) >= 3; });
+    var eff = fullDays.filter(function (r) { return r[11] !== '' && Number(r[7]) >= 3; });
     draw('cEff', { type: 'line', data: { labels: eff.map(function (r) { return dShort(dateOf(r[0])); }),
       datasets: [{ data: eff.map(function (r) { return r[11]; }), borderColor: css('--heat'), backgroundColor: css('--heat'), pointRadius: 3, tension: .3 }] },
       options: base({ scales: { y: { beginAtZero: true, title: { display: true, text: 'kWh per °day' } }, x: xt } }) }, eff.length >= 3);
