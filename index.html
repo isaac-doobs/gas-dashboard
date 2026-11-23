@@ -12,7 +12,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Gas">
 <meta name="theme-color" content="#141414">
-<link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -117,6 +116,11 @@
         <li>Choose <b>Thermostat → Set up phone app (QR)…</b></li>
         <li>Scan the code with the iPhone camera and open it in Safari.</li>
       </ol>
+      <form id="pasteForm" autocomplete="off" style="margin-top:20px;text-align:left">
+        <label class="l" for="pasteIn">Already copied the key? Paste it here</label>
+        <div class="row"><input id="pasteIn" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Paste key"><button class="btn primary" type="submit">Use</button></div>
+        <div class="note" id="pasteMsg" role="status"></div>
+      </form>
     </div>
     <div id="setupInstall" style="display:none">
       <p>Key received. Now install the app:</p>
@@ -125,7 +129,9 @@
         <li>Choose <b>Add to Home Screen</b>, keep the name <b>Gas</b>, tap <b>Add</b>.</li>
         <li>Open <b>Gas</b> from your Home Screen. It runs fullscreen.</li>
       </ol>
-      <button class="btn" id="useInSafari">Or just use it here in Safari</button>
+      <p style="margin-top:16px">If the Home Screen app still asks for the key, tap <b>Copy key</b> below, open the app and paste it there.</p>
+      <div class="row" style="justify-content:center"><button class="btn primary" id="copyKey" type="button">Copy key</button><button class="btn" id="useInSafari" type="button">Use here in Safari</button></div>
+      <div class="note" id="copyMsg" role="status"></div>
     </div>
   </div>
 </div>
@@ -242,6 +248,20 @@
     start();
   });
 
+  el('pasteForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = el('pasteIn').value.replace(/^.*#k=/, '').trim();
+    if (!/^[A-Za-z0-9]{32,}$/.test(v)) { el('pasteMsg').textContent = 'That doesn’t look like the key. Copy it again from Safari.'; return; }
+    store(KEY_NAME, v); KEY = v;
+    document.body.classList.remove('setup');
+    start();
+  });
+  el('copyKey').addEventListener('click', function () {
+    var k = load(KEY_NAME) || '';
+    var done = function () { el('copyMsg').textContent = 'Copied. Now open the Gas app and paste it.'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(k).then(done, function () { el('copyMsg').textContent = 'Couldn’t copy automatically.'; });
+  });
+
   if (!KEY) { showSetup('need'); return; }
   if (m && !standalone) { showSetup('install'); return; } // in Safari with a fresh key: guide to Add to Home Screen first
   start();
@@ -258,7 +278,9 @@
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
   // ---------------- data ----------------
+  var started = false;
   function start() {
+    if (started) return; started = true;
     bindControls();
     Chart.defaults.color = css('--mute');
     Chart.defaults.borderColor = css('--line');
