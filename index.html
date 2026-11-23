@@ -11,6 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Gas">
+<meta name="app-version" content="20261123195047">
 <meta name="theme-color" content="#121110">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -328,7 +329,9 @@
   'use strict';
   var API = 'https://script.google.com/macros/s/AKfycbzsMgWjkXWzbay8kxhFHKT-rIX46-usNDv8eZwpM2qNbwtBiZMZypx8FmUl5Dnqdce3/exec';
   var KEY_NAME = 'gas-dashboard:key', DATA_NAME = 'gas-dashboard:data', RANGE_NAME = 'gas-dashboard:range', VIEW_NAME = 'gas-dashboard:view';
-  var STALE_MIN = 15, SAVE_PER_DEGREE = 0.06;
+  var STALE_MIN = 15, SAVE_PER_DEGREE = 0.06, UPDATE_NAME = 'gas-dashboard:update';
+  var APP_VERSION = (document.querySelector('meta[name="app-version"]') || {}).content || '';
+  if (/[?&]v=/.test(location.search)) history.replaceState(null, '', location.pathname + location.hash); // arrived via an update reload
   var DATA = null, charts = {}, range = 7, busy = false, started = false, view = 'now', hmSel = null;
   var TITLES = { now: 'Now', trends: 'Trends', meter: 'Meter' };
   var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -396,8 +399,26 @@
     var cached = load(DATA_NAME);
     if (cached) { try { DATA = JSON.parse(cached); render(true); } catch (e) {} }
     fetchData();
+    checkUpdate();
     setInterval(fetchData, 5 * 60 * 1000);
-    document.addEventListener('visibilitychange', function () { if (!document.hidden) fetchData(); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) { fetchData(); checkUpdate(); } });
+  }
+
+  // ---- automatic update: compare our version tag with the one on GitHub, reload through a fresh address if newer ----
+  function checkUpdate() {
+    if (!APP_VERSION || APP_VERSION.indexOf('PLACEHOLDER') >= 0) return;
+    fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (html) {
+        var mv = /name="app-version" content="20261123195047"]+)"/.exec(html);
+        if (!mv || mv[1] === APP_VERSION || mv[1] < APP_VERSION) return;
+        if (el('meterIn') && el('meterIn').value.trim()) return; // don't throw away a reading being typed
+        var last = null; try { last = JSON.parse(load(UPDATE_NAME) || 'null'); } catch (e) {}
+        if (last && last.v === mv[1] && Date.now() - last.at < 15 * 60 * 1000) return; // tried recently: avoid loops
+        store(UPDATE_NAME, JSON.stringify({ v: mv[1], at: Date.now() }));
+        location.replace(location.pathname + '?v=' + encodeURIComponent(mv[1]));
+      })
+      .catch(function () {});
   }
 
   function api(body) {
