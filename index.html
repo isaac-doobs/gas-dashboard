@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Gas">
-<meta name="app-version" content="20261123195047">
+<meta name="app-version" content="20261123195337">
 <meta name="theme-color" content="#121110">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -410,7 +410,7 @@
     fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' })
       .then(function (r) { return r.ok ? r.text() : ''; })
       .then(function (html) {
-        var mv = /name="app-version" content="20261123195047"]+)"/.exec(html);
+        var mv = /name="app-version" content="20261123195337"]+)"/.exec(html);
         if (!mv || mv[1] === APP_VERSION || mv[1] < APP_VERSION) return;
         if (el('meterIn') && el('meterIn').value.trim()) return; // don't throw away a reading being typed
         var last = null; try { last = JSON.parse(load(UPDATE_NAME) || 'null'); } catch (e) {}
@@ -659,7 +659,7 @@
       }).join('') : '<p class="sub" style="margin:0">Add two readings to compare the meter with the logged boiler time.</p>';
 
     el('assumptions').textContent = 'Each hour the boiler runs uses about ' + num(S.kwhPerHour / S.kwhPerM3, 2) + ' m³ (' + num(S.kwhPerHour, 1) + ' kWh)' + (S.measured ? ', measured with your meter' : ', an assumption until you measure it') +
-      '. Gas is priced at ' + num(S.price, 2) + ' lei/kWh incl. VAT, ' + num(S.kwhPerM3, 2) + ' kWh per m³. Outside temperature comes from Open-Meteo for Cluj-Napoca.';
+      '. Gas is priced at ' + num(S.price, 2) + ' lei/kWh incl. VAT, ' + num(S.kwhPerM3, 2) + ' kWh per m³. Outside temperature comes from Open-Meteo for your area.';
   }
 
   // ---------------- controls ----------------
