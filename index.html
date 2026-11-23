@@ -11,164 +11,264 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Gas">
-<meta name="app-version" content="20261123200204">
-<meta name="theme-color" content="#121110">
+<meta name="app-version" content="20261123202425">
+<meta name="theme-color" content="#0B0D12">
+<meta name="color-scheme" content="dark">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
-    --bg:#f6f3ee; --card:#ffffff; --card2:#f0ece5; --ink:#1c1a17; --mute:#6b655d; --line:#e6e0d6;
-    --flame:#d9541c; --flame-soft:#fbe3d6; --gas:#2f6fd6; --out:#1c8a7e; --good:#2e8b57; --bad:#c2410c;
-    --warn-bg:#fff3d1; --warn-ink:#7a5200; --err:#b42318;
-    --r:18px; --r-sm:12px; --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
-    --t:160ms cubic-bezier(.2,.8,.2,1);
-    --tabbar:64px;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#121110; --card:#1c1a18; --card2:#26231f; --ink:#f4f1ec; --mute:#a39d94; --line:#2d2a26;
-      --flame:#ef6a2e; --flame-soft:#3a2216; --gas:#5b93f0; --out:#3bb3a4; --good:#4cc27e; --bad:#f08a4b;
-      --warn-bg:#3a2e10; --warn-ink:#ffd27a; --err:#ff8a7a; }
+    --bg:#0B0D12;
+    --glass:rgba(255,255,255,.045); --glass-2:rgba(255,255,255,.06); --glass-in:rgba(255,255,255,.035);
+    --edge:rgba(255,255,255,.09); --hair:rgba(255,255,255,.05); --hi:inset 0 1px 0 rgba(255,255,255,.08);
+    --ink:#F3F5F9; --ink-2:#C7CCD6; --mute:#8A92A3; --dim:#5E6677;
+    --ember-1:#FF5E1A; --ember-2:#FF9F43; --ember:#FF7A2E;
+    --gas-1:#22D3EE; --gas-2:#0EA5E9; --gas:#22D3EE;
+    --frost:#60A5FA; --amber:#FBBF24; --mint:#34D399; --crimson:#EF4444;
+    --warn-bg:rgba(251,191,36,.12); --warn-ink:#FCD34D; --err-bg:rgba(239,68,68,.14); --err-ink:#FCA5A5;
+    --r:22px; --r-md:16px; --r-sm:12px;
+    --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:28px;
+    --ease:cubic-bezier(.22,1,.36,1); --spring:cubic-bezier(.34,1.56,.64,1);
+    --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",sans-serif;
+    --mono:"Space Mono","SF Mono",ui-monospace,Menlo,monospace;
+    --dock-h:64px;
   }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html { -webkit-text-size-adjust:100%; background:var(--bg); }
-  body { margin:0; font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--ink); overflow-x:hidden; }
+  html { -webkit-text-size-adjust:100%; background:var(--bg); color-scheme:dark; }
+  body { margin:0; font:16px/1.45 var(--display); background:var(--bg); color:var(--ink); overflow-x:hidden; min-height:100vh; }
   button, input { font:inherit; color:inherit; }
   .num { font-variant-numeric:tabular-nums; }
+  .mono { font-family:var(--mono); }
 
-  /* header */
-  .top { position:sticky; top:0; z-index:5; background:color-mix(in srgb, var(--bg) 88%, transparent); -webkit-backdrop-filter:saturate(1.4) blur(14px); backdrop-filter:saturate(1.4) blur(14px);
-    padding: calc(env(safe-area-inset-top) + 10px) calc(var(--s4) + env(safe-area-inset-right)) 10px calc(var(--s4) + env(safe-area-inset-left));
-    display:flex; align-items:center; justify-content:space-between; gap:var(--s3); }
-  .top h1 { margin:0; font-size:28px; line-height:1.1; letter-spacing:-.02em; font-weight:750; }
-  .top .when { color:var(--mute); font-size:13px; margin-top:2px; }
-  .iconbtn { width:44px; height:44px; border-radius:50%; border:0; background:var(--card); display:grid; place-items:center; cursor:pointer; box-shadow:0 1px 0 var(--line) inset, 0 0 0 1px var(--line); transition:transform var(--t); }
-  .iconbtn:active { transform:scale(.92); }
-  .iconbtn svg { width:20px; height:20px; }
-  .iconbtn.spin svg { animation:spin 900ms linear infinite; }
+  /* ---------- ambient thermal backdrop ---------- */
+  .ambient { position:fixed; inset:0 0 auto 0; height:72vh; z-index:0; pointer-events:none; overflow:hidden; }
+  .ambient .blob { position:absolute; border-radius:50%; filter:blur(60px); opacity:0; transition:opacity 1.2s var(--ease), background 1.2s var(--ease); will-change:transform; }
+  .ambient .b1 { width:120vw; height:62vh; left:-30vw; top:-30vh; animation:drift 10s ease-in-out infinite alternate; }
+  .ambient .b2 { width:90vw; height:50vh; right:-35vw; top:-18vh; animation:drift2 12s ease-in-out infinite alternate; }
+  body.s-heating .ambient .b1 { background:radial-gradient(closest-side, rgba(255,94,26,.30), rgba(255,94,26,0)); opacity:1; }
+  body.s-heating .ambient .b2 { background:radial-gradient(closest-side, rgba(255,159,67,.24), rgba(255,159,67,0)); opacity:1; }
+  body.s-idle .ambient .b1 { background:radial-gradient(closest-side, rgba(30,58,95,.55), rgba(30,58,95,0)); opacity:1; }
+  body.s-idle .ambient .b2 { background:radial-gradient(closest-side, rgba(59,130,246,.16), rgba(59,130,246,0)); opacity:1; }
+  body.s-idle.s-warm .ambient .b2 { background:radial-gradient(closest-side, rgba(255,159,67,.10), rgba(255,159,67,0)); }
+  body.s-stale .ambient .b1, body.s-stale .ambient .b2 { opacity:.35; }
+  @keyframes drift { from { transform:translate3d(0,0,0) scale(1); } to { transform:translate3d(6vw,3vh,0) scale(1.12); } }
+  @keyframes drift2 { from { transform:translate3d(0,0,0) scale(1.05); } to { transform:translate3d(-8vw,4vh,0) scale(.92); } }
+
+  /* ---------- header ---------- */
+  .top { position:sticky; top:0; z-index:5; display:flex; align-items:center; justify-content:space-between; gap:var(--s3);
+    padding: calc(env(safe-area-inset-top) + 12px) calc(var(--s5) + env(safe-area-inset-right)) 12px calc(var(--s5) + env(safe-area-inset-left));
+    background:linear-gradient(to bottom, rgba(11,13,18,.82), rgba(11,13,18,.55) 70%, rgba(11,13,18,0)); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); }
+  .top h1 { margin:0; font-size:32px; line-height:1.05; letter-spacing:-.03em; font-weight:800; }
+  .top .when { color:var(--mute); font-size:13px; margin-top:3px; font-family:var(--mono); letter-spacing:-.01em; }
+  .iconbtn { width:44px; height:44px; border-radius:50%; border:1px solid var(--edge); background:var(--glass); box-shadow:var(--hi);
+    -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); display:grid; place-items:center; cursor:pointer; transition:transform 180ms var(--ease); }
+  .iconbtn:active { transform:scale(.9); }
+  .iconbtn svg { width:20px; height:20px; transition:transform 700ms var(--spring); }
+  .iconbtn.turn svg { transform:rotate(360deg); }
+  .iconbtn.spin svg { animation:spin 900ms linear infinite; transition:none; }
   @keyframes spin { to { transform:rotate(360deg); } }
 
-  /* views */
-  main { max-width:720px; margin:0 auto; padding: var(--s2) calc(var(--s4) + env(safe-area-inset-right)) calc(var(--tabbar) + env(safe-area-inset-bottom) + var(--s5)) calc(var(--s4) + env(safe-area-inset-left)); }
-  .view { display:none; flex-direction:column; gap:var(--s3); animation:fade var(--t); }
+  /* ---------- layout ---------- */
+  .app { position:relative; z-index:1; }
+  main { max-width:720px; margin:0 auto; padding: var(--s1) calc(var(--s4) + env(safe-area-inset-right)) calc(var(--dock-h) + env(safe-area-inset-bottom) + 40px) calc(var(--s4) + env(safe-area-inset-left)); }
+  .view { display:none; flex-direction:column; gap:var(--s3); }
   .view.on { display:flex; }
-  @keyframes fade { from { opacity:0; transform:translateY(4px); } }
-  .card { background:var(--card); border-radius:var(--r); padding:var(--s4) var(--s4) var(--s4); box-shadow:0 0 0 1px var(--line); min-width:0; }
-  .eyebrow { font-size:13px; font-weight:650; color:var(--mute); letter-spacing:.01em; margin:0 0 var(--s2); display:flex; justify-content:space-between; align-items:baseline; gap:var(--s2); }
-  .section-title { font-size:20px; font-weight:700; letter-spacing:-.01em; margin:var(--s4) var(--s1) 0; }
-  .sub { color:var(--mute); font-size:14px; }
+  .card { position:relative; overflow:hidden; background:var(--glass); border:1px solid var(--edge); box-shadow:var(--hi);
+    -webkit-backdrop-filter:blur(18px) saturate(1.2); backdrop-filter:blur(18px) saturate(1.2); border-radius:var(--r); padding:var(--s5); min-width:0; }
+  .enter > * { animation:rise 520ms var(--ease) both; animation-delay:calc(var(--i, 0) * 45ms); }
+  @keyframes rise { from { opacity:0; transform:translateY(10px); } }
+  .shimmer::after { content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(110deg, transparent 30%, rgba(255,255,255,.07) 50%, transparent 70%); transform:translateX(-100%); animation:sweep 900ms var(--ease) forwards; }
+  @keyframes sweep { to { transform:translateX(100%); } }
+  .eyebrow { font-size:13px; font-weight:650; color:var(--mute); letter-spacing:.02em; margin:0 0 var(--s3); display:flex; justify-content:space-between; align-items:center; gap:var(--s2); }
+  .eyebrow .ic { display:inline-grid; place-items:center; width:22px; height:22px; border-radius:7px; margin-right:6px; vertical-align:-6px; }
+  .eyebrow .ic svg { width:14px; height:14px; }
+  .sub { color:var(--ink-2); font-size:15px; }
   .small { color:var(--mute); font-size:13px; }
+  .divider { height:1px; background:var(--edge); margin:var(--s4) 0; }
 
-  /* hero */
-  .hero { padding:var(--s5) var(--s4) var(--s4); background:linear-gradient(160deg, var(--flame-soft), var(--card) 62%); }
-  .hero.idle { background:var(--card); }
-  .pill { display:inline-flex; align-items:center; gap:var(--s2); padding:6px 12px 6px 10px; border-radius:999px; font-weight:650; font-size:14px; background:var(--card2); }
-  .pill .dot { width:9px; height:9px; border-radius:50%; background:var(--mute); }
-  .pill.on { background:var(--flame); color:#fff; } .pill.on .dot { background:#fff; animation:pulse 1.6s infinite; }
-  .pill.win { background:var(--gas); color:#fff; } .pill.win .dot { background:#fff; }
-  .pill.stale { opacity:.65; }
-  @keyframes pulse { 50% { opacity:.35; } }
-  .big { font-size:64px; line-height:1; font-weight:750; letter-spacing:-.04em; margin:var(--s4) 0 var(--s1); }
-  .big small { font-size:28px; font-weight:600; letter-spacing:-.02em; color:var(--mute); }
-  .hero .meta { display:flex; gap:var(--s4); font-size:15px; color:var(--mute); flex-wrap:wrap; }
-  .hero .meta b { color:var(--ink); font-weight:650; }
-  .hero .story { margin:var(--s4) 0 0; font-size:16px; }
+  /* ---------- hero ---------- */
+  .hero { padding:var(--s5) var(--s5) var(--s5); }
+  .hero-top { display:flex; align-items:center; justify-content:space-between; gap:var(--s3); }
+  .pill { position:relative; display:inline-flex; align-items:center; gap:8px; padding:7px 13px 7px 11px; border-radius:999px; font-weight:700; font-size:14px;
+    background:var(--glass-2); border:1px solid var(--edge); color:var(--ink-2); }
+  .pill .dot { position:relative; width:9px; height:9px; border-radius:50%; background:var(--dim); }
+  .pill.on { background:linear-gradient(135deg, rgba(255,94,26,.28), rgba(255,159,67,.18)); border-color:rgba(255,122,46,.45); color:#FFD2B8; }
+  .pill.on .dot { background:var(--ember-2); box-shadow:0 0 10px var(--ember-1); }
+  .pill.on .dot::after { content:''; position:absolute; inset:-2px; border-radius:50%; border:2px solid var(--ember-2); animation:sonar 1.8s var(--ease) infinite; }
+  @keyframes sonar { from { transform:scale(1); opacity:.9; } to { transform:scale(3.4); opacity:0; } }
+  .pill.win { background:rgba(96,165,250,.16); border-color:rgba(96,165,250,.4); color:#BFDBFE; } .pill.win .dot { background:var(--frost); }
+  .pill.stale { opacity:.6; }
+  .hero-body { display:flex; align-items:center; justify-content:space-between; gap:var(--s2); margin-top:var(--s4); }
+  .big { font-size:76px; line-height:.95; font-weight:800; letter-spacing:-.055em; white-space:nowrap; }
+  .big sup { font-size:24px; font-weight:700; letter-spacing:-.01em; color:var(--ink-2); vertical-align:top; position:relative; top:.42em; margin-left:4px; }
+  .gauge { width:128px; flex:0 0 128px; }
+  .gauge svg { width:100%; height:auto; overflow:visible; display:block; }
+  .gauge .track { stroke:rgba(255,255,255,.08); }
+  .gauge .fill { transition:stroke-dashoffset 1s var(--ease); }
+  .gauge .mark { transition:transform 1s var(--ease); }
+  .gauge .lab { font:600 10px var(--mono); fill:var(--mute); }
+  .heat-shimmer { opacity:0; transition:opacity .6s; }
+  body.s-heating .heat-shimmer { opacity:1; }
+  .heat-shimmer path { animation:waver 2.4s ease-in-out infinite; transform-origin:center bottom; }
+  .heat-shimmer path:nth-child(2) { animation-delay:.6s; } .heat-shimmer path:nth-child(3) { animation-delay:1.2s; }
+  @keyframes waver { 0%,100% { transform:translateY(0) scaleY(1); opacity:.25; } 50% { transform:translateY(-3px) scaleY(1.12); opacity:.7; } }
+  .chips { display:flex; gap:var(--s2); flex-wrap:wrap; margin-top:var(--s4); }
+  .chip { display:inline-flex; align-items:center; gap:7px; padding:8px 12px; border-radius:var(--r-sm); font-size:14px; color:var(--ink-2); border:1px solid var(--edge); background:var(--glass-in); }
+  .chip b { color:var(--ink); font-weight:700; font-variant-numeric:tabular-nums; }
+  .chip svg { width:15px; height:15px; }
+  .chip.target { background:rgba(255,122,46,.10); border-color:rgba(255,122,46,.28); } .chip.target svg { color:var(--ember-2); }
+  .chip.out { background:rgba(96,165,250,.12); border-color:rgba(96,165,250,.30); } .chip.out svg { color:var(--frost); }
+  .story { margin:0; font-size:15px; color:var(--ink-2); }
 
-  /* stat rows */
-  .row3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--s2); }
-  .stat .l { font-size:13px; color:var(--mute); }
-  .stat .v { font-size:22px; font-weight:700; letter-spacing:-.01em; line-height:1.25; }
-  .stat .d { font-size:13px; color:var(--mute); }
-  .today-big { font-size:34px; font-weight:750; letter-spacing:-.03em; line-height:1.1; }
-  .split { display:flex; justify-content:space-between; align-items:flex-end; gap:var(--s3); }
-  .divider { height:1px; background:var(--line); margin:var(--s4) 0; }
+  /* ---------- bento ---------- */
+  .metric { display:flex; align-items:center; gap:var(--s3); }
+  .metric .badge { width:44px; height:44px; flex:0 0 44px; border-radius:14px; display:grid; place-items:center;
+    background:linear-gradient(135deg, rgba(255,94,26,.30), rgba(255,159,67,.16)); border:1px solid rgba(255,122,46,.35); color:var(--ember-2); }
+  .metric .badge svg { width:22px; height:22px; }
+  .hero-num { font-size:40px; font-weight:800; letter-spacing:-.04em; line-height:1; }
+  .stat-pills { display:flex; gap:var(--s2); flex-wrap:wrap; margin-top:var(--s3); }
+  .sp { display:inline-flex; align-items:center; gap:6px; padding:6px 11px; border-radius:999px; font-weight:700; font-size:14px; font-variant-numeric:tabular-nums; border:1px solid; }
+  .sp.gas { color:#A5F3FC; background:rgba(34,211,238,.10); border-color:rgba(34,211,238,.28); }
+  .sp.money { color:#FDE68A; background:rgba(251,191,36,.10); border-color:rgba(251,191,36,.28); }
+  .sp.save { color:#A7F3D0; background:rgba(52,211,153,.10); border-color:rgba(52,211,153,.30); }
+  .sp svg { width:13px; height:13px; }
+  .tiles { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--s2); margin-top:var(--s4); }
+  .tile { background:rgba(0,0,0,.22); border:1px solid var(--hair); border-radius:var(--r-md); padding:var(--s3); box-shadow:inset 0 1px 2px rgba(0,0,0,.35); min-width:0; }
+  .tile .l { font-size:12px; color:var(--mute); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tile .v { font-size:19px; font-weight:800; letter-spacing:-.02em; line-height:1.25; margin-top:2px; white-space:nowrap; }
+  .tile .d { font-size:13px; font-weight:600; margin-top:1px; white-space:nowrap; }
+  .c-ember { color:var(--ember-2); } .c-gas { color:var(--gas); } .c-amber { color:var(--amber); } .c-mint { color:var(--mint); } .c-frost { color:var(--frost); }
 
   /* comparison */
-  .delta { display:inline-flex; align-items:center; gap:6px; font-weight:750; font-size:28px; letter-spacing:-.02em; }
-  .delta.up { color:var(--bad); } .delta.down { color:var(--good); } .delta.flat { color:var(--mute); }
-  .delta svg { width:22px; height:22px; }
-
-  .bar { height:6px; border-radius:3px; background:var(--card2); overflow:hidden; margin-top:var(--s3); }
-  .bar > i { display:block; height:100%; background:var(--flame); border-radius:3px; }
+  .delta { display:inline-flex; align-items:center; gap:6px; font-weight:800; font-size:30px; letter-spacing:-.03em; }
+  .delta.up { color:var(--ember-2); } .delta.down { color:var(--mint); } .delta.flat { color:var(--ink-2); }
+  .delta svg { width:24px; height:24px; }
+  .baseline { margin-top:var(--s1); }
+  .baseline .bl-top { display:flex; justify-content:space-between; font-size:14px; color:var(--ink-2); }
+  .baseline .bl-top b { font-family:var(--mono); font-weight:700; color:var(--ink); }
+  .track-bar { position:relative; height:10px; border-radius:999px; background:rgba(255,255,255,.06); overflow:hidden; margin-top:var(--s2); border:1px solid var(--hair); }
+  .track-bar > i { position:absolute; inset:0 auto 0 0; border-radius:999px; background:linear-gradient(90deg, var(--gas-2), var(--gas-1) 45%, var(--ember-2) 80%, var(--ember-1)); box-shadow:0 0 14px rgba(34,211,238,.45); transition:width 1.1s var(--ease); }
+  .track-bar.thin { height:6px; }
+  .track-bar.thin > i { background:linear-gradient(90deg, var(--ember-1), var(--ember-2)); box-shadow:0 0 12px rgba(255,122,46,.45); }
 
   .tip { display:flex; gap:var(--s3); align-items:flex-start; }
-  .tip .ic { flex:0 0 36px; height:36px; border-radius:10px; background:var(--flame-soft); display:grid; place-items:center; color:var(--flame); }
-  .tip .ic svg { width:20px; height:20px; }
+  .tip .badge { width:40px; height:40px; flex:0 0 40px; border-radius:13px; display:grid; place-items:center; background:rgba(52,211,153,.12); border:1px solid rgba(52,211,153,.30); color:var(--mint); }
+  .tip .badge svg { width:20px; height:20px; }
+  .tip b.t { font-weight:700; display:block; margin-bottom:2px; }
 
-  .banner { display:none; border-radius:var(--r-sm); padding:var(--s3) var(--s4); background:var(--warn-bg); color:var(--warn-ink); font-size:14px; }
-  .banner.err { background:color-mix(in srgb, var(--err) 14%, var(--card)); color:var(--err); }
+  .banner { display:none; border-radius:var(--r-md); padding:var(--s3) var(--s4); background:var(--warn-bg); color:var(--warn-ink); font-size:14px; border:1px solid rgba(251,191,36,.25); }
+  .banner.err { background:var(--err-bg); color:var(--err-ink); border-color:rgba(239,68,68,.3); }
   .banner button { margin-top:var(--s2); }
 
-  /* charts */
-  .chart { position:relative; height:200px; margin-top:var(--s2); }
-  .empty { position:absolute; inset:0; display:none; align-items:center; justify-content:center; text-align:center; color:var(--mute); font-size:14px; padding:var(--s4); background:var(--card); border-radius:var(--r-sm); }
-  .legend { display:flex; flex-wrap:wrap; gap:var(--s3); font-size:13px; color:var(--mute); margin-top:var(--s2); }
-  .legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
-  .seg { display:flex; background:var(--card2); border-radius:12px; padding:3px; gap:2px; }
-  .seg button { flex:1; border:0; background:transparent; padding:0 10px; min-height:36px; border-radius:9px; font-size:14px; cursor:pointer; transition:background var(--t); }
-  .seg button[aria-pressed="true"] { background:var(--card); font-weight:650; box-shadow:0 1px 3px rgba(0,0,0,.12); }
+  /* ---------- charts ---------- */
+  .chart { position:relative; height:210px; margin-top:var(--s2); }
+  .empty { position:absolute; inset:0; display:none; align-items:center; justify-content:center; text-align:center; color:var(--mute); font-size:14px; padding:var(--s4); }
+  .legend { display:flex; flex-wrap:wrap; gap:var(--s3); font-size:13px; color:var(--mute); margin-top:var(--s3); }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:6px; vertical-align:-1px; }
+  .seg { position:relative; display:grid; grid-template-columns:repeat(4,1fr); background:var(--glass); border:1px solid var(--edge); box-shadow:var(--hi); border-radius:14px; padding:4px;
+    -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); }
+  .seg .thumb { position:absolute; top:4px; bottom:4px; left:4px; width:calc((100% - 8px) / 4); border-radius:10px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.12);
+    box-shadow:0 4px 14px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12); transition:transform 250ms var(--ease); }
+  .seg button { position:relative; z-index:1; border:0; background:transparent; min-height:38px; font-size:14px; font-weight:600; color:var(--mute); cursor:pointer; transition:color 200ms; }
+  .seg button[aria-pressed="true"] { color:var(--ink); }
 
   /* heatmap */
-  .hm { display:grid; grid-template-columns:28px repeat(24, minmax(0,1fr)); gap:2px; margin-top:var(--s2); }
-  .hm .lab { font-size:11px; color:var(--mute); display:flex; align-items:center; }
-  .hm .hr { font-size:10px; color:var(--mute); text-align:left; grid-column:span 6; }
-  .hm .c { aspect-ratio:1/1.6; border-radius:3px; background:var(--card2); border:0; padding:0; cursor:pointer; }
-  .hm .c.sel { outline:2px solid var(--ink); outline-offset:1px; }
-  .hm-scale { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--mute); margin-top:var(--s3); }
-  .hm-scale span.g { width:60px; height:8px; border-radius:4px; background:linear-gradient(90deg, var(--card2), var(--flame)); }
+  .hm { display:grid; grid-template-columns:30px repeat(24, minmax(0,1fr)); gap:2px; margin-top:var(--s2); }
+  .hm .lab { font:600 11px var(--mono); color:var(--mute); display:flex; align-items:center; }
+  .hm .hr { font:600 10px var(--mono); color:var(--mute); grid-column:span 6; }
+  .hm .c { aspect-ratio:1/1.6; border-radius:3px; border:0; padding:0; cursor:pointer; background:rgba(255,255,255,.04); transition:transform 150ms var(--ease), box-shadow 150ms; }
+  .hm .c:active { transform:scale(1.25); }
+  .hm .c.sel { box-shadow:0 0 0 2px var(--ink), 0 0 12px rgba(255,159,67,.7); z-index:1; }
+  .hm-scale { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--mute); margin-top:var(--s3); }
+  .hm-scale .g { width:72px; height:8px; border-radius:4px; background:linear-gradient(90deg, #1a1d26, #7a2a0c, #FF5E1A, #FF9F43, #FFF1D6); }
+  .hm-scale #hmPick { margin-left:auto; font-family:var(--mono); color:var(--ink-2); }
 
-  details.more { margin-top:var(--s2); }
-  details.more summary { list-style:none; cursor:pointer; color:var(--flame); font-weight:600; font-size:15px; padding:var(--s2) 0; }
-  details.more summary::-webkit-details-marker { display:none; }
-  details.more[open] summary { color:var(--mute); }
+  details.acc { padding:0; }
+  details.acc > summary { list-style:none; cursor:pointer; padding:var(--s4) var(--s5); display:flex; justify-content:space-between; align-items:center; font-weight:700; }
+  details.acc > summary::-webkit-details-marker { display:none; }
+  details.acc > summary .chev { width:20px; height:20px; color:var(--mute); transition:transform 300ms var(--ease); }
+  details.acc[open] > summary .chev { transform:rotate(180deg); }
+  details.acc .acc-body { padding:0 var(--s5) var(--s5); }
 
   table { width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; }
-  th, td { padding:10px 6px; text-align:right; border-bottom:1px solid var(--line); white-space:nowrap; }
-  th:first-child, td:first-child { text-align:left; padding-left:0; }
-  th:last-child, td:last-child { padding-right:0; }
+  th, td { padding:11px 6px; text-align:right; border-bottom:1px solid var(--hair); white-space:nowrap; }
+  th:first-child, td:first-child { text-align:left; padding-left:0; } th:last-child, td:last-child { padding-right:0; }
   th { color:var(--mute); font-weight:600; font-size:12px; }
   tr:last-child td { border-bottom:0; }
   td[colspan] { white-space:normal; text-align:left; color:var(--mute); }
-  .scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-  .mrow { padding:var(--s3) 0; border-top:1px solid var(--line); }
-  .mrow .split { align-items:baseline; }
 
-  /* form */
-  .field { display:flex; gap:var(--s2); margin-top:var(--s2); }
-  .field input { flex:1; min-width:0; min-height:48px; border:0; background:var(--card2); border-radius:var(--r-sm); padding:0 14px; font-size:20px; font-variant-numeric:tabular-nums; }
-  .field input:focus { outline:2px solid var(--flame); }
-  .btn { border:0; border-radius:var(--r-sm); padding:0 18px; min-height:48px; font-size:16px; font-weight:650; cursor:pointer; background:var(--card2); transition:transform var(--t), opacity var(--t); }
-  .btn.primary { background:var(--flame); color:#fff; }
-  .btn:active { transform:scale(.97); }
-  .btn:disabled { opacity:.5; }
+  /* ---------- meter ---------- */
+  .odo { display:flex; align-items:stretch; gap:6px; margin-top:var(--s2); }
+  .odo .face { flex:1; display:flex; align-items:center; border-radius:var(--r-md); overflow:hidden; border:1px solid rgba(255,255,255,.12);
+    background:linear-gradient(180deg, #07080b, #12151c); box-shadow:inset 0 2px 10px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.06); min-height:60px; min-width:0; }
+  .odo input { border:0; background:transparent; font:700 24px var(--mono); letter-spacing:.12em; color:#F5F7FA; min-width:0; padding:0 6px; height:60px; outline:none; text-align:center; }
+  .odo input::placeholder { color:#3B4250; }
+  .odo .whole { flex:5; width:0; }
+  .odo .comma { font:700 24px var(--mono); color:var(--mute); padding:0 1px; }
+  .odo .dec { flex:3; width:0; background:rgba(239,68,68,.16); border-left:1px solid rgba(239,68,68,.35); color:#FECACA; box-shadow:inset 0 0 0 1px rgba(239,68,68,.22); }
+  .odo .dec::placeholder { color:rgba(254,202,202,.28); }
+  .odo .face:focus-within { border-color:rgba(255,122,46,.6); box-shadow:inset 0 2px 10px rgba(0,0,0,.7), 0 0 0 3px rgba(255,122,46,.18); }
+  .btn { border:0; border-radius:var(--r-md); padding:0 18px; min-height:60px; font-size:17px; font-weight:800; cursor:pointer; color:#fff;
+    background:linear-gradient(135deg, #FF6B2B, #FF4500); box-shadow:0 8px 24px rgba(255,69,0,.35), inset 0 1px 0 rgba(255,255,255,.25); transition:transform 160ms var(--ease), background 300ms, box-shadow 300ms; }
+  .btn:active { transform:scale(.95); }
+  .btn:disabled { opacity:.6; }
+  .btn.ok { background:linear-gradient(135deg, #34D399, #059669); box-shadow:0 8px 24px rgba(5,150,105,.35); }
+  .btn.ghost { background:var(--glass-2); box-shadow:var(--hi); border:1px solid var(--edge); color:var(--ink); min-height:44px; font-size:15px; font-weight:700; }
+  .btn svg { width:22px; height:22px; vertical-align:-5px; }
+  .tl { position:relative; padding-left:22px; }
+  .tl::before { content:''; position:absolute; left:6px; top:8px; bottom:8px; width:2px; background:linear-gradient(to bottom, rgba(34,211,238,.5), rgba(34,211,238,.05)); border-radius:1px; }
+  .tl-item { position:relative; padding:var(--s3) 0; }
+  .tl-item + .tl-item { border-top:1px solid var(--hair); }
+  .tl-item::before { content:''; position:absolute; left:-20px; top:19px; width:10px; height:10px; border-radius:50%; background:var(--gas-1); box-shadow:0 0 0 3px rgba(34,211,238,.18), 0 0 12px rgba(34,211,238,.8); }
+  .tl-item .row { display:flex; justify-content:space-between; align-items:center; gap:var(--s2); }
+  .tl-item .when { font-family:var(--mono); font-size:13px; font-weight:700; }
+  .m3 { font:700 13px var(--mono); padding:4px 10px; border-radius:999px; color:#A5F3FC; background:rgba(34,211,238,.12); border:1px solid rgba(34,211,238,.3); white-space:nowrap; }
+  .rate { display:inline-block; font:700 12px var(--mono); padding:3px 8px; border-radius:999px; margin-top:6px; }
+  .rate.ok { color:#A7F3D0; background:rgba(52,211,153,.12); border:1px solid rgba(52,211,153,.3); }
+  .rate.drift { color:#FDE68A; background:rgba(251,191,36,.12); border:1px solid rgba(251,191,36,.3); }
 
-  /* tab bar */
-  .tabbar { position:fixed; left:0; right:0; bottom:0; z-index:6; display:flex; justify-content:center;
-    background:color-mix(in srgb, var(--card) 86%, transparent); -webkit-backdrop-filter:saturate(1.4) blur(16px); backdrop-filter:saturate(1.4) blur(16px);
-    box-shadow:0 -1px 0 var(--line); padding:6px calc(env(safe-area-inset-right) + 8px) calc(env(safe-area-inset-bottom) + 6px) calc(env(safe-area-inset-left) + 8px); }
-  .tabbar .in { display:flex; width:100%; max-width:480px; }
-  .tabbar button { flex:1; border:0; background:none; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0; min-height:52px; font-size:11px; font-weight:600; color:var(--mute); cursor:pointer; }
-  .tabbar button svg { width:26px; height:26px; }
-  .tabbar button[aria-selected="true"] { color:var(--flame); }
+  /* ---------- floating dock ---------- */
+  .dock { position:fixed; z-index:6; left:calc(16px + env(safe-area-inset-left)); right:calc(16px + env(safe-area-inset-right)); bottom:calc(env(safe-area-inset-bottom) + 10px);
+    max-width:420px; margin:0 auto; height:var(--dock-h); border-radius:28px; padding:6px; display:grid; grid-template-columns:repeat(3,1fr);
+    background:rgba(22,25,33,.62); border:1px solid rgba(255,255,255,.12); box-shadow:0 18px 40px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.1);
+    -webkit-backdrop-filter:blur(22px) saturate(1.5); backdrop-filter:blur(22px) saturate(1.5); }
+  .dock .thumb { position:absolute; top:6px; bottom:6px; left:6px; width:calc((100% - 12px) / 3); border-radius:22px;
+    background:linear-gradient(135deg, rgba(255,94,26,.30), rgba(255,159,67,.16)); border:1px solid rgba(255,122,46,.40); box-shadow:0 0 18px rgba(255,94,26,.25); transition:transform 380ms var(--spring); }
+  .dock button { position:relative; z-index:1; border:0; background:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-size:11px; font-weight:700; color:var(--mute); cursor:pointer; transition:color 250ms; }
+  .dock button svg { width:24px; height:24px; transition:transform 300ms var(--spring); }
+  .dock button[aria-selected="true"] { color:#FFD2B8; }
+  .dock button[aria-selected="true"] svg { transform:scale(1.08); }
 
-  /* setup */
-  #setup { display:none; min-height:100vh; place-items:center; text-align:center; padding:calc(var(--s6) + env(safe-area-inset-top)) var(--s5) var(--s5); }
+  /* ---------- setup ---------- */
+  #setup { display:none; position:relative; z-index:1; min-height:100vh; place-items:center; text-align:center; padding:calc(var(--s6) + env(safe-area-inset-top)) var(--s5) var(--s5); }
   #setup .box { max-width:360px; }
-  #setup img { width:88px; height:88px; border-radius:20px; }
-  #setup h1 { margin:var(--s4) 0 var(--s2); font-size:26px; }
-  #setup p, #setup li { color:var(--mute); }
+  #setup img { width:88px; height:88px; border-radius:20px; box-shadow:0 10px 40px rgba(255,94,26,.35); }
+  #setup h1 { margin:var(--s4) 0 var(--s2); font-size:28px; letter-spacing:-.02em; }
+  #setup p, #setup li { color:var(--ink-2); }
   #setup ol { text-align:left; padding-left:20px; }
+  #setup .field { display:flex; gap:var(--s2); margin-top:var(--s2); }
+  #setup input { flex:1; min-width:0; min-height:48px; border-radius:var(--r-sm); border:1px solid var(--edge); background:var(--glass); padding:0 12px; font-size:16px; }
+  #setup .btn { min-height:48px; font-size:15px; }
   body.setup .app { display:none; } body.setup #setup { display:grid; }
 
-  /* skeleton while the first data loads */
-  .sk .big, .sk .today-big, .sk .v { color:transparent !important; background:var(--card2); border-radius:8px; }
+  .sk .big, .sk .hero-num { color:transparent !important; background:rgba(255,255,255,.06); border-radius:10px; }
 
-  @media (prefers-reduced-motion: reduce) { .view { animation:none; } .pill.on .dot, .iconbtn.spin svg { animation:none; } }
-  @media (min-width:720px) { .big { font-size:80px; } .chart { height:240px; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration:1ms !important; animation-iteration-count:1 !important; transition-duration:1ms !important; }
+    .ambient .blob { animation:none; }
+  }
+  @media (min-width:720px) { .big { font-size:96px; } .gauge { width:160px; flex-basis:160px; } .chart { height:250px; } }
+  @media (max-width:360px) { .big { font-size:64px; } .gauge { width:108px; flex-basis:108px; } .tile .v { font-size:17px; } }
 </style>
 </head>
-<body>
+<body class="s-idle">
+<div class="ambient" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div></div>
+
 <div id="setup">
   <div class="box">
     <img src="icon-192.png" alt="">
@@ -182,7 +282,7 @@
       </ol>
       <form id="pasteForm" autocomplete="off" style="margin-top:20px;text-align:left">
         <label class="small" for="pasteIn">Already copied the key? Paste it here</label>
-        <div class="field"><input id="pasteIn" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Paste key" style="font-size:16px"><button class="btn primary" type="submit">Use</button></div>
+        <div class="field"><input id="pasteIn" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Paste key"><button class="btn" type="submit">Use</button></div>
         <div class="small" id="pasteMsg" role="status" style="margin-top:8px"></div>
       </form>
     </div>
@@ -194,7 +294,7 @@
         <li>Open <b>Gas</b> from your Home Screen. It runs fullscreen.</li>
       </ol>
       <p style="margin-top:16px">If the Home Screen app still asks for the key, tap <b>Copy key</b>, open the app and paste it there.</p>
-      <div class="field" style="justify-content:center"><button class="btn primary" id="copyKey" type="button">Copy key</button><button class="btn" id="useInSafari" type="button">Use here</button></div>
+      <div class="field" style="justify-content:center"><button class="btn" id="copyKey" type="button">Copy key</button><button class="btn ghost" id="useInSafari" type="button">Use here</button></div>
       <div class="small" id="copyMsg" role="status" style="margin-top:8px"></div>
     </div>
   </div>
@@ -206,7 +306,7 @@
       <h1 id="viewTitle">Now</h1>
       <div class="when" id="updated">Loading…</div>
     </div>
-    <button class="iconbtn" id="refresh" aria-label="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></svg></button>
+    <button class="iconbtn" id="refresh" aria-label="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></svg></button>
   </header>
 
   <main>
@@ -216,19 +316,48 @@
     <!-- NOW -->
     <section class="view on" id="view-now">
       <div class="card hero sk" id="heroCard">
-        <span class="pill" id="pill"><span class="dot"></span><span id="pillText">Loading</span></span>
-        <div class="big num" id="tRoom">21,0<small>°</small></div>
-        <div class="meta num"><span>Target <b id="tSet">–</b></span><span>Outside <b id="tOut">–</b></span></div>
+        <div class="hero-top">
+          <span class="pill" id="pill"><span class="dot"></span><span id="pillText">Loading</span></span>
+          <span class="small mono" id="sinceTxt"></span>
+        </div>
+        <div class="hero-body">
+          <div class="big num" id="tRoom" data-v="">21,0<sup>°C</sup></div>
+          <div class="gauge" aria-hidden="true">
+            <svg viewBox="0 0 140 92">
+              <defs>
+                <linearGradient id="gArc" x1="0" x2="1"><stop offset="0" stop-color="#60A5FA"/><stop offset=".55" stop-color="#FF9F43"/><stop offset="1" stop-color="#FF5E1A"/></linearGradient>
+                <filter id="gGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              </defs>
+              <g class="heat-shimmer" stroke="#FF9F43" stroke-width="1.6" fill="none" stroke-linecap="round">
+                <path d="M58 58 q3 -5 0 -10 q-3 -5 0 -10"/><path d="M70 60 q3 -5 0 -10 q-3 -5 0 -10"/><path d="M82 58 q3 -5 0 -10 q-3 -5 0 -10"/>
+              </g>
+              <path class="track" d="M14 78 A56 56 0 0 1 126 78" fill="none" stroke-width="10" stroke-linecap="round"/>
+              <path class="fill" id="gFill" d="M14 78 A56 56 0 0 1 126 78" fill="none" stroke="url(#gArc)" stroke-width="10" stroke-linecap="round" filter="url(#gGlow)" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+              <g class="mark" id="gMark"><circle r="6.5" fill="#0B0D12" stroke="#F3F5F9" stroke-width="2.5"/></g>
+              <text class="lab" x="14" y="91" text-anchor="middle">15°</text>
+              <text class="lab" x="126" y="91" text-anchor="middle">25°</text>
+            </svg>
+          </div>
+        </div>
+        <div class="chips">
+          <span class="chip target"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Target <b id="tSet">–</b></span>
+          <span class="chip out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 2v20M4.9 7l14.2 10M4.9 17L19.1 7"/></svg>Outside <b id="tOut">–</b></span>
+        </div>
+        <div class="divider"></div>
         <p class="story" id="story">&nbsp;</p>
       </div>
 
       <div class="card sk" id="todayCard">
         <div class="eyebrow">Boiler today</div>
-        <div class="split">
-          <div><div class="today-big num" id="todayRun">0 min</div><div class="sub num" id="todayCost">&nbsp;</div></div>
+        <div class="metric">
+          <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 22c4 0 7-2.8 7-7 0-4.8-4.2-7.6-5.4-12-2.6 2.4-3.4 5-3.1 7.4C9.6 9 8.6 8 8 6.6 6.2 8.8 5 11.4 5 15c0 4.2 3 7 7 7z"/></svg></div>
+          <div class="hero-num num" id="todayRun" data-v="">0 min</div>
         </div>
-        <div class="divider"></div>
-        <div class="row3" id="periods"></div>
+        <div class="stat-pills">
+          <span class="sp gas"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c3 4 6 6.6 6 10.5A6 6 0 0 1 6 13.5C6 9.6 9 7 12 3z"/></svg><span id="todayM3" data-v="">0,00 m³</span></span>
+          <span class="sp money"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/></svg><span id="todayLei" data-v="">0 lei</span></span>
+        </div>
+        <div class="tiles" id="periods"></div>
       </div>
 
       <div class="card" id="compareCard">
@@ -237,57 +366,60 @@
       </div>
 
       <div class="card sk" id="monthCard">
-        <div class="eyebrow"><span id="monthTitle">This month</span><span id="monthDays" class="small"></span></div>
-        <div class="row3" id="forecast"></div>
-        <div class="bar" aria-hidden="true"><i id="monthBar" style="width:0"></i></div>
-        <div class="small" id="forecastNote" style="margin-top:8px"></div>
+        <div class="eyebrow"><span id="monthTitle">This month</span><span id="monthDays" class="small mono"></span></div>
+        <div class="tiles" id="forecast" style="margin-top:0"></div>
+        <div class="track-bar thin" aria-hidden="true" style="margin-top:14px"><i id="monthBar" style="width:0"></i></div>
+        <div class="small" style="margin-top:8px">Heating only; the stove and hot water aren’t included.</div>
       </div>
 
       <div class="card" id="tipCard" hidden>
         <div class="tip">
-          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div>
-          <div><div style="font-weight:650">Saving tip</div><div class="sub" id="tipText"></div></div>
+          <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div>
+          <div><b class="t">Saving tip</b><div class="sub" id="tipText"></div><div class="stat-pills"><span class="sp save" id="tipSave"></span></div></div>
         </div>
       </div>
 
       <div class="card">
         <div class="eyebrow">Last 48 hours</div>
-        <div class="chart"><canvas id="cTemp" role="img" aria-label="Temperatures over the last 48 hours"></canvas><div class="empty">No readings yet.</div></div>
-        <div class="legend"><span><i style="background:var(--ink)"></i>Room</span><span><i style="background:var(--flame)"></i>Target</span><span><i style="background:var(--out)"></i>Outside</span><span><i style="background:color-mix(in srgb,var(--flame) 28%,transparent)"></i>Boiler on</span></div>
+        <div class="chart"><canvas id="cTemp"></canvas><div class="empty">No readings yet.</div></div>
+        <div class="legend"><span><i style="background:#F3F5F9"></i>Room</span><span><i style="background:#FF9F43"></i>Target</span><span><i style="background:#60A5FA"></i>Outside</span><span><i style="background:rgba(255,94,26,.35)"></i>Boiler on</span></div>
       </div>
     </section>
 
     <!-- TRENDS -->
     <section class="view" id="view-trends">
       <div class="seg" id="range" role="group" aria-label="Period">
+        <span class="thumb" id="rangeThumb"></span>
         <button data-d="7" aria-pressed="true">7 days</button><button data-d="30" aria-pressed="false">30 days</button><button data-d="90" aria-pressed="false">90 days</button><button data-d="0" aria-pressed="false">All</button>
       </div>
       <div class="card">
-        <div class="eyebrow">Boiler hours per day</div>
-        <div class="chart"><canvas id="cHours" role="img" aria-label="Boiler hours per day"></canvas><div class="empty">Shows up after the first full day.</div></div>
-        <div class="legend"><span><i style="background:var(--flame)"></i>Hours</span><span><i style="background:var(--out)"></i>Avg outside °C</span></div>
+        <div class="eyebrow"><span><span class="ic" style="background:rgba(255,122,46,.16);color:#FF9F43"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c3 4 6 6.6 6 10.5A6 6 0 0 1 6 13.5C6 9.6 9 7 12 3z"/></svg></span>Boiler hours per day</span></div>
+        <div class="chart"><canvas id="cHours"></canvas><div class="empty">Shows up after the first full day.</div></div>
+        <div class="legend"><span><i style="background:linear-gradient(#FF9F43,#FF5E1A)"></i>Hours</span><span><i style="background:#60A5FA"></i>Avg outside °C</span></div>
       </div>
       <div class="card">
-        <div class="eyebrow">Gas per day <span class="small">estimate, heating only</span></div>
-        <div class="chart"><canvas id="cGas" role="img" aria-label="Gas per day"></canvas><div class="empty">Shows up after the first full day.</div></div>
+        <div class="eyebrow"><span><span class="ic" style="background:rgba(34,211,238,.14);color:#22D3EE"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c3 4 6 6.6 6 10.5A6 6 0 0 1 6 13.5C6 9.6 9 7 12 3z"/></svg></span>Gas per day</span><span class="small">estimate, heating only</span></div>
+        <div class="chart"><canvas id="cGas"></canvas><div class="empty">Shows up after the first full day.</div></div>
       </div>
       <div class="card">
-        <div class="eyebrow">When the boiler runs <span class="small" id="hmDays"></span></div>
+        <div class="eyebrow">When the boiler runs <span class="small mono" id="hmDays"></span></div>
         <div class="hm" id="hm"></div>
-        <div class="hm-scale"><span>less</span><span class="g"></span><span>more</span><span id="hmPick" style="margin-left:auto"></span></div>
+        <div class="hm-scale"><span>less</span><span class="g"></span><span>more</span><span id="hmPick"></span></div>
       </div>
       <div class="card">
         <div class="eyebrow">By month</div>
-        <div class="scroll"><table id="months"></table></div>
+        <div style="overflow-x:auto"><table id="months"></table></div>
       </div>
-      <details class="card more">
-        <summary>Weather-adjusted view</summary>
-        <div class="eyebrow" style="margin-top:8px">Gas vs outside temperature</div>
-        <div class="chart"><canvas id="cScatter" role="img" aria-label="Gas versus outside temperature"></canvas><div class="empty">Needs about 3 full days.</div></div>
-        <p class="small">Each dot is a day. Colder days should sit higher. A dot well above the others used more gas than the weather explains.</p>
-        <div class="eyebrow" style="margin-top:16px">Gas per degree of cold</div>
-        <div class="chart"><canvas id="cEff" role="img" aria-label="Gas per degree-day"></canvas><div class="empty">Needs a few cold, full days.</div></div>
-        <p class="small" id="effNote"></p>
+      <details class="card acc" id="weatherAcc">
+        <summary>Weather-adjusted view <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="acc-body">
+          <div class="eyebrow">Gas vs outside temperature</div>
+          <div class="chart"><canvas id="cScatter"></canvas><div class="empty">Needs about 3 full days.</div></div>
+          <p class="small">Each dot is a day. Colder days should sit higher. A dot well above the others used more gas than the weather explains.</p>
+          <div class="eyebrow" style="margin-top:16px">Gas per degree of cold</div>
+          <div class="chart"><canvas id="cEff"></canvas><div class="empty">Needs a few cold, full days.</div></div>
+          <p class="small" id="effNote"></p>
+        </div>
       </details>
     </section>
 
@@ -296,31 +428,36 @@
       <div class="card">
         <div class="eyebrow">Add a meter reading</div>
         <form id="meterForm" autocomplete="off">
-          <div class="field">
-            <input id="meterIn" inputmode="decimal" placeholder="03284,089" aria-label="Meter reading in cubic metres" required>
-            <button class="btn primary" id="meterBtn" type="submit">Save</button>
+          <div class="odo">
+            <div class="face">
+              <input class="whole" id="meterWhole" inputmode="numeric" maxlength="6" placeholder="03284" aria-label="Whole cubic metres">
+              <span class="comma">,</span>
+              <input class="dec" id="meterDec" inputmode="numeric" maxlength="3" placeholder="089" aria-label="Decimals (red digits)">
+            </div>
+            <button class="btn" id="meterBtn" type="submit">Save</button>
           </div>
-          <div class="small" id="meterMsg" role="status" style="margin-top:8px">All digits, including the red ones after the comma.</div>
+          <div class="small" id="meterMsg" role="status" style="margin-top:10px">Black digits on the left, the red ones after the comma on the right.</div>
         </form>
       </div>
       <div class="card">
         <div class="eyebrow">Readings</div>
         <div id="meter"></div>
       </div>
-      <div class="card">
-        <div class="eyebrow">How the estimate works</div>
-        <p class="sub" id="assumptions" style="margin:0"></p>
-        <p class="small">Meter m³ also includes the stove and hot water, so over longer periods it reads higher than the heating estimate. For a clean boiler test, use nothing else on gas between two readings.</p>
-      </div>
+      <details class="card acc">
+        <summary>How the estimate works <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="acc-body">
+          <p class="sub" id="assumptions" style="margin:0"></p>
+          <p class="small">Meter m³ also includes the stove and hot water, so over longer periods it reads higher than the heating estimate. For a clean boiler test, use nothing else on gas between two readings.</p>
+        </div>
+      </details>
     </section>
   </main>
 
-  <nav class="tabbar" role="tablist" aria-label="Sections">
-    <div class="in">
-      <button role="tab" data-view="now" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 22c4 0 7-2.8 7-7 0-4.8-4.2-7.6-5.4-12-2.6 2.4-3.4 5-3.1 7.4C9.6 9 8.6 8 8 6.6 6.2 8.8 5 11.4 5 15c0 4.2 3 7 7 7z"/></svg>Now</button>
-      <button role="tab" data-view="trends" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Trends</button>
-      <button role="tab" data-view="meter" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 12h3M12 12h1M15 12h2"/></svg>Meter</button>
-    </div>
+  <nav class="dock" role="tablist" aria-label="Sections">
+    <span class="thumb" id="dockThumb"></span>
+    <button role="tab" data-view="now" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 22c4 0 7-2.8 7-7 0-4.8-4.2-7.6-5.4-12-2.6 2.4-3.4 5-3.1 7.4C9.6 9 8.6 8 8 6.6 6.2 8.8 5 11.4 5 15c0 4.2 3 7 7 7z"/></svg>Now</button>
+    <button role="tab" data-view="trends" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Trends</button>
+    <button role="tab" data-view="meter" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 12h3M12 12h1M15 12h2"/></svg>Meter</button>
   </nav>
 </div>
 
@@ -329,12 +466,14 @@
   'use strict';
   var API = 'https://script.google.com/macros/s/AKfycbzsMgWjkXWzbay8kxhFHKT-rIX46-usNDv8eZwpM2qNbwtBiZMZypx8FmUl5Dnqdce3/exec';
   var KEY_NAME = 'gas-dashboard:key', DATA_NAME = 'gas-dashboard:data', RANGE_NAME = 'gas-dashboard:range', VIEW_NAME = 'gas-dashboard:view';
-  var STALE_MIN = 15, SAVE_PER_DEGREE = 0.06, UPDATE_NAME = 'gas-dashboard:update';
+  var STALE_MIN = 15, SAVE_PER_DEGREE = 0.06, UPDATE_NAME = 'gas-dashboard:update', BASELINE_DAYS = 14;
   var APP_VERSION = (document.querySelector('meta[name="app-version"]') || {}).content || '';
-  if (/[?&]v=/.test(location.search)) history.replaceState(null, '', location.pathname + location.hash); // arrived via an update reload
+  if (/[?&]v=/.test(location.search)) history.replaceState(null, '', location.pathname + location.hash);
   var DATA = null, charts = {}, range = 7, busy = false, started = false, view = 'now', hmSel = null;
-  var TITLES = { now: 'Now', trends: 'Trends', meter: 'Meter' };
+  var TITLES = { now: 'Now', trends: 'Trends', meter: 'Meter' }, VIEWS = ['now', 'trends', 'meter'];
   var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  var REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var C = { ink: '#F3F5F9', mute: '#8A92A3', hair: 'rgba(255,255,255,.05)', e1: '#FF5E1A', e2: '#FF9F43', g1: '#22D3EE', g2: '#0EA5E9', frost: '#60A5FA' };
 
   function store(k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
   function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -343,10 +482,7 @@
 
   // ---- key handling: the key arrives once in the #k=… fragment (never sent to any server) ----
   var m = /[#&]k=([A-Za-z0-9]{32,})/.exec(location.hash);
-  if (m) {
-    store(KEY_NAME, m[1]);
-    if (standalone) history.replaceState(null, '', location.pathname);
-  }
+  if (m) { store(KEY_NAME, m[1]); if (standalone) history.replaceState(null, '', location.pathname); }
   var KEY = load(KEY_NAME);
 
   function showSetup(mode) {
@@ -371,7 +507,6 @@
   start();
 
   // ---------------- helpers ----------------
-  function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
   function num(n, d) { if (n === '' || n === null || n === undefined || isNaN(n)) return '–'; d = d === undefined ? 1 : d; return Number(n).toLocaleString('ro-RO', { minimumFractionDigits: d, maximumFractionDigits: d }); }
   function lei(n) { return num(n, n < 10 ? 1 : 0) + ' lei'; }
   function hm(min) { min = Math.round(min); var h = Math.floor(min / 60), mm = min % 60; return h >= 10 ? h + ' h' : h ? h + ' h ' + (mm < 10 ? '0' : '') + mm + ' m' : mm + ' min'; }
@@ -383,21 +518,46 @@
   function avg(arr) { return arr.length ? arr.reduce(function (a, b) { return a + b; }, 0) / arr.length : NaN; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function ago(min) { return min < 1 ? 'just now' : min < 60 ? Math.round(min) + ' min ago' : hm(min) + ' ago'; }
-  var ARROW_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
-  var ARROW_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>';
+  var ARROW_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+  var ARROW_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>';
+  var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+  // animated number roll: tween from the previous value to the new one
+  function roll(node, value, fmt, html) {
+    var prev = parseFloat(node.dataset.v);
+    node.dataset.v = String(value);
+    var put = function (v) { if (html) node.innerHTML = fmt(v); else node.textContent = fmt(v); };
+    if (REDUCED || !isFinite(prev) || !isFinite(value) || prev === value) { put(value); return; }
+    var t0 = performance.now(), dur = 650;
+    (function step(t) {
+      var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      put(prev + (value - prev) * e);
+      if (k < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+  function stagger(v) {
+    var box = el('view-' + v); if (!box || REDUCED) return;
+    Array.prototype.forEach.call(box.children, function (c, i) { c.style.setProperty('--i', i); });
+    box.classList.remove('enter'); void box.offsetWidth; box.classList.add('enter');
+  }
+  function shimmer() {
+    if (REDUCED) return;
+    document.querySelectorAll('.view.on .card').forEach(function (c) { c.classList.remove('shimmer'); void c.offsetWidth; c.classList.add('shimmer'); setTimeout(function () { c.classList.remove('shimmer'); }, 950); });
+  }
 
   // ---------------- data ----------------
   function start() {
     if (started) return; started = true;
-    Chart.defaults.color = css('--mute');
-    Chart.defaults.borderColor = css('--line');
-    Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
-    Chart.defaults.font.size = 12;
+    Chart.defaults.color = C.mute;
+    Chart.defaults.borderColor = C.hair;
+    Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif';
+    Chart.defaults.font.size = 11;
     bind();
     var r = load(RANGE_NAME); if (r !== null && [0, 7, 30, 90].indexOf(Number(r)) >= 0) setRange(Number(r), false);
-    var v = load(VIEW_NAME); if (v && TITLES[v]) setView(v, false);
+    var v = load(VIEW_NAME); setView(v && TITLES[v] ? v : 'now', false);
     var cached = load(DATA_NAME);
     if (cached) { try { DATA = JSON.parse(cached); render(true); } catch (e) {} }
+    stagger(view);
     fetchData();
     checkUpdate();
     setInterval(fetchData, 5 * 60 * 1000);
@@ -406,15 +566,15 @@
 
   // ---- automatic update: compare our version tag with the one on GitHub, reload through a fresh address if newer ----
   function checkUpdate() {
-    if (!APP_VERSION || APP_VERSION.indexOf('PLACEHOLDER') >= 0) return;
+    if (!APP_VERSION) return;
     fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' })
       .then(function (r) { return r.ok ? r.text() : ''; })
       .then(function (html) {
         var mv = new RegExp('name="app-' + 'version" content="([0-9]+)"').exec(html); // built in pieces so publish.sh never rewrites it
         if (!mv || mv[1] === APP_VERSION || mv[1] < APP_VERSION) return;
-        if (el('meterIn') && el('meterIn').value.trim()) return; // don't throw away a reading being typed
+        if (el('meterWhole').value.trim() || el('meterDec').value.trim()) return; // don't throw away a reading being typed
         var last = null; try { last = JSON.parse(load(UPDATE_NAME) || 'null'); } catch (e) {}
-        if (last && last.v === mv[1] && Date.now() - last.at < 15 * 60 * 1000) return; // tried recently: avoid loops
+        if (last && last.v === mv[1] && Date.now() - last.at < 15 * 60 * 1000) return;
         store(UPDATE_NAME, JSON.stringify({ v: mv[1], at: Date.now() }));
         location.replace(location.pathname + '?v=' + encodeURIComponent(mv[1]));
       })
@@ -430,18 +590,22 @@
       .then(function (j) { clearTimeout(timer); return j; }, function (e) { clearTimeout(timer); throw e; });
   }
 
-  function fetchData() {
+  function fetchData(manual) {
     if (busy) return; busy = true;
-    el('refresh').classList.add('spin'); el('refresh').disabled = true;
+    var b = el('refresh'); b.classList.remove('turn'); b.classList.add('spin'); b.disabled = true;
     api({ action: 'data' }).then(function (res) {
       if (!res.ok && res.error === 'unauthorized') { store(KEY_NAME, null); store(DATA_NAME, null); showSetup('need'); return; }
       if (!res.ok) throw new Error(res.error || 'failed');
       DATA = res.data; store(DATA_NAME, JSON.stringify(DATA)); el('err').style.display = 'none'; render(false);
+      if (manual === true) shimmer();
     }).catch(function () {
       var e = el('err');
-      e.innerHTML = 'Your Google script didn’t answer in time' + (DATA ? '. Showing data from ' + esc(tShort(dateOf(DATA.now))) + '.' : '.') + '<br><button class="btn" type="button">Try again</button>';
-      e.querySelector('button').onclick = fetchData; e.style.display = 'block';
-    }).then(function () { busy = false; el('refresh').classList.remove('spin'); el('refresh').disabled = false; });
+      e.innerHTML = 'Your Google script didn’t answer in time' + (DATA ? '. Showing data from ' + esc(tShort(dateOf(DATA.now))) + '.' : '.') + '<br><button class="btn ghost" type="button">Try again</button>';
+      e.querySelector('button').onclick = function () { fetchData(true); }; e.style.display = 'block';
+    }).then(function () {
+      busy = false; b.classList.remove('spin'); b.disabled = false;
+      if (!REDUCED) { void b.offsetWidth; b.classList.add('turn'); setTimeout(function () { b.classList.remove('turn'); }, 720); }
+    });
   }
 
   // ---------------- render ----------------
@@ -453,19 +617,36 @@
     var ageMin = L.time ? (now - dateOf(L.time)) / 60000 : Infinity;
     var stale = ageMin > STALE_MIN;
     el('updated').textContent = L.time ? 'Updated ' + ago(ageMin) + (fromCache ? ' · refreshing' : '') : 'No readings yet';
-
     var st = el('stale');
     if (stale && L.time) { st.textContent = 'No new readings since ' + tShort(dateOf(L.time)) + '. Logging may have stopped: check the Tuya connection or the sheet’s Thermostat menu.'; st.style.display = 'block'; }
     else st.style.display = 'none';
 
+    // ---- atmosphere ----
+    var heating = L.heating && !stale;
+    var room = Number(L.room), target = Number(L.set);
+    document.body.classList.toggle('s-heating', !!heating);
+    document.body.classList.toggle('s-idle', !heating);
+    document.body.classList.toggle('s-warm', isFinite(room) && room > 20);
+    document.body.classList.toggle('s-stale', stale);
+
     // ---- hero ----
-    var pill = el('pill'), heating = L.heating && !stale;
+    var pill = el('pill');
     pill.className = 'pill' + (L.window ? ' win' : heating ? ' on' : '') + (stale ? ' stale' : '');
     el('pillText').textContent = stale ? 'Status unknown' : L.window ? 'Window open' : heating ? 'Heating' : (L.power === false ? 'Thermostat off' : 'Idle');
-    el('heroCard').classList.toggle('idle', !heating);
-    el('tRoom').innerHTML = L.room === undefined || L.room === '' ? '–' : num(L.room) + '<small>°</small>';
-    el('tSet').textContent = L.set === undefined || L.set === '' ? '–' : num(L.set) + '°';
+    el('sinceTxt').textContent = L.since && !stale ? 'since ' + tShort(dateOf(L.since)) : '';
+    if (L.room === undefined || L.room === '') el('tRoom').innerHTML = '–';
+    else roll(el('tRoom'), room, function (v) { return num(v) + '<sup>°C</sup>'; }, true);
+    el('tSet').textContent = L.set === undefined || L.set === '' ? '–' : num(target) + '°';
     el('tOut').textContent = L.outside === undefined || L.outside === '' ? '–' : num(L.outside) + '°';
+    setGauge(room, target);
+
+    var story;
+    if (stale) story = 'The thermostat hasn’t reported for a while, so these numbers may be out of date.';
+    else if (L.window) story = 'The thermostat thinks a window is open and has paused heating.';
+    else if (heating) story = 'The boiler has been running' + (L.since ? ' since ' + tShort(dateOf(L.since)) : '') + ' to reach ' + num(target) + '°.';
+    else if (isFinite(room) && isFinite(target) && room >= target) story = 'The room is at or above the target, so the boiler is resting.';
+    else story = 'The boiler is off right now.';
+    el('story').textContent = story;
 
     // ---- today / week / month ----
     var todayKey = keyOf(now), monthKey = todayKey.slice(0, 7);
@@ -477,21 +658,13 @@
     var mo = bucket(function (r) { return String(r[0]).slice(0, 7) === monthKey; });
     var perMin = S.kwhPerHour / 60;
     [t, w, mo].forEach(function (b) { b.min += liveMin; b.m3 += liveMin * perMin / S.kwhPerM3; b.lei += liveMin * perMin * S.price; });
-    el('todayRun').textContent = hm(t.min);
-    el('todayCost').textContent = '≈ ' + num(t.m3, 2) + ' m³ · ' + lei(t.lei);
-    el('periods').innerHTML = [['This week', w], ['This month', mo], ['Per boiler hour', null]].map(function (x) {
-      if (!x[1]) return '<div class="stat"><div class="l">' + x[0] + '</div><div class="v num">' + lei(S.kwhPerHour * S.price) + '</div><div class="d num">' + num(S.kwhPerHour / S.kwhPerM3, 2) + ' m³</div></div>';
-      return '<div class="stat"><div class="l">' + x[0] + '</div><div class="v num">' + hm(x[1].min) + '</div><div class="d num">' + lei(x[1].lei) + '</div></div>';
-    }).join('');
-
-    // ---- story (one plain sentence) ----
-    var story;
-    if (stale) story = 'The thermostat hasn’t reported for a while, so these numbers may be out of date.';
-    else if (L.window) story = 'The thermostat thinks a window is open and has paused heating.';
-    else if (heating) story = 'The boiler has been running' + (L.since ? ' since ' + tShort(dateOf(L.since)) : '') + ' to reach ' + num(L.set) + '°.';
-    else if (L.room !== '' && L.set !== '' && Number(L.room) >= Number(L.set)) story = 'The room is at or above the target, so the boiler is resting' + (L.since ? ' since ' + tShort(dateOf(L.since)) : '') + '.';
-    else story = 'The boiler is off right now' + (L.since ? ' since ' + tShort(dateOf(L.since)) : '') + '.';
-    el('story').textContent = story;
+    roll(el('todayRun'), t.min, hm);
+    roll(el('todayM3'), t.m3, function (v) { return num(v, 2) + ' m³'; });
+    roll(el('todayLei'), t.lei, lei);
+    el('periods').innerHTML =
+      tile('This week', hm(w.min), lei(w.lei), 'c-amber') +
+      tile('This month', hm(mo.min), lei(mo.lei), 'c-amber') +
+      tile('Per hour', lei(S.kwhPerHour * S.price), num(S.kwhPerHour / S.kwhPerM3, 2) + ' m³', 'c-gas');
 
     // ---- last 7 full days vs the 7 before ----
     var full = all.filter(function (r) { return r[0] !== todayKey; });
@@ -512,9 +685,13 @@
         why = Math.abs(dT) < 0.5 ? 'The weather was about the same.' : (dT < 0 ? 'It was ' + num(-dT) + '° colder outside on average' : 'It was ' + num(dT) + '° warmer outside on average') + (sum(last7, 7) > 3 && sum(prev7, 7) > 3 ? ', and adjusted for that, you used ' + (Math.abs((ea - eb) / eb * 100) < 3 ? 'about the same' : num(Math.abs((ea - eb) / eb * 100), 0) + '% ' + (ea > eb ? 'more' : 'less')) + '.' : '.');
       }
       cmp.innerHTML = '<div class="delta ' + cls + ' num">' + (cls === 'flat' ? '' : cls === 'up' ? ARROW_UP : ARROW_DOWN) + (cls === 'flat' ? 'About the same' : num(Math.abs(pct), 0) + '% ' + (pct > 0 ? 'more gas' : 'less gas')) + '</div>' +
-        '<div class="sub num" style="margin-top:4px">' + num(a, 2) + ' m³ a day, was ' + num(b, 2) + ' m³</div>' + (why ? '<p class="small" style="margin:8px 0 0">' + why + '</p>' : '');
+        '<div class="stat-pills"><span class="sp gas">' + num(a, 2) + ' m³/day</span><span class="sp" style="color:var(--mute);border-color:var(--edge)">was ' + num(b, 2) + '</span></div>' + (why ? '<p class="small" style="margin:10px 0 0">' + why + '</p>' : '');
     } else {
-      cmp.innerHTML = '<p class="sub" style="margin:0">Appears after about two weeks of logging (' + full.length + ' full day' + (full.length === 1 ? '' : 's') + ' so far).</p>';
+      var have = Math.min(full.length, BASELINE_DAYS);
+      cmp.innerHTML = '<div class="baseline"><div class="bl-top"><span>Collecting baseline</span><b>Day ' + Math.max(1, have) + ' of ' + BASELINE_DAYS + '</b></div>' +
+        '<div class="track-bar"><i style="width:0"></i></div><p class="small" style="margin:10px 0 0">After two weeks this compares your last 7 days with the 7 before, weather included.</p></div>';
+      var bar = cmp.querySelector('.track-bar i');
+      requestAnimationFrame(function () { requestAnimationFrame(function () { bar.style.width = Math.max(6, have / BASELINE_DAYS * 100) + '%'; }); });
     }
 
     // ---- month ----
@@ -526,17 +703,17 @@
     el('monthTitle').textContent = now.toLocaleDateString('en-GB', { month: 'long' });
     el('monthDays').textContent = Math.max(0, Math.ceil(dim - elapsed)) + ' days left';
     el('forecast').innerHTML =
-      '<div class="stat"><div class="l">So far</div><div class="v num">' + lei(mo.lei) + '</div><div class="d num">' + num(mo.m3, 1) + ' m³</div></div>' +
-      '<div class="stat"><div class="l">Estimate</div><div class="v num">' + (canProject ? '≈ ' + lei(estLei) : '–') + '</div><div class="d num">' + (canProject ? '≈ ' + num(estM3, 0) + ' m³' : 'after 3 days') + '</div></div>' +
-      '<div class="stat"><div class="l">Typical day</div><div class="v num">' + (mFull.length ? lei(avgLei) : '–') + '</div><div class="d num">' + (mFull.length ? hm(sum(mFull, 1) / mFull.length) : '') + '</div></div>';
+      tile('So far', lei(mo.lei), num(mo.m3, 1) + ' m³', 'c-gas', 'c-amber') +
+      tile('Estimate', canProject ? '≈ ' + lei(estLei) : '–', canProject ? '≈ ' + num(estM3, 0) + ' m³' : 'after 3 days', 'c-gas', 'c-amber') +
+      tile('Typical day', mFull.length ? lei(avgLei) : '–', mFull.length ? hm(sum(mFull, 1) / mFull.length) : '', 'c-ember', 'c-amber');
     el('monthBar').style.width = Math.round(Math.min(1, elapsed / dim) * 100) + '%';
-    el('forecastNote').textContent = 'Heating only; the stove and hot water aren’t included.';
 
     // ---- saving tip ----
     var basis = canProject ? estLei : (last7.length >= 3 ? sum(last7, 10) / last7.length * 30 : 0);
     if (basis > 0) {
       el('tipCard').hidden = false;
-      el('tipText').textContent = 'Each degree lower on the thermostat usually saves about ' + Math.round(SAVE_PER_DEGREE * 100) + '% of heating gas. For you that’s roughly ' + lei(basis * SAVE_PER_DEGREE) + ' a month' + (L.set !== '' ? ' (going from ' + num(L.set) + '° to ' + num(Number(L.set) - 1) + '°)' : '') + '.';
+      el('tipText').textContent = 'Each degree lower on the thermostat usually saves about ' + Math.round(SAVE_PER_DEGREE * 100) + '% of heating gas' + (L.set !== '' ? ' (' + num(target) + '° → ' + num(target - 1) + '°)' : '') + '.';
+      el('tipSave').textContent = '≈ ' + lei(basis * SAVE_PER_DEGREE) + ' saved a month';
     } else el('tipCard').hidden = true;
 
     drawNow();
@@ -544,9 +721,33 @@
     renderTables();
   }
 
+  function tile(label, value, detail, detailCls, valueCls) {
+    return '<div class="tile"><div class="l">' + label + '</div><div class="v num ' + (valueCls || '') + '">' + value + '</div><div class="d num ' + (detailCls || '') + '">' + detail + '</div></div>';
+  }
+
+  // semicircle gauge from 15° to 25°: fill = room, white knob = target
+  function setGauge(room, target) {
+    var lo = 15, hi = 25, f = function (v) { return Math.max(0, Math.min(1, (v - lo) / (hi - lo))); };
+    el('gFill').setAttribute('stroke-dashoffset', isFinite(room) ? String(100 - f(room) * 100) : '100');
+    var ft = isFinite(target) ? f(target) : 0, ang = Math.PI * (1 - ft);
+    el('gMark').setAttribute('transform', 'translate(' + (70 + 56 * Math.cos(ang)).toFixed(1) + ' ' + (78 - 56 * Math.sin(ang)).toFixed(1) + ')');
+  }
+
+  // ---------------- charts ----------------
+  function vgrad(top, bottom) {
+    return function (c) {
+      var ch = c.chart, a = ch.chartArea; if (!a) return top;
+      var g = ch.ctx.createLinearGradient(0, a.top, 0, a.bottom); g.addColorStop(0, top); g.addColorStop(1, bottom); return g;
+    };
+  }
+  var TOOLTIP = { backgroundColor: 'rgba(20,23,31,.92)', borderColor: 'rgba(255,255,255,.14)', borderWidth: 1, padding: 10, cornerRadius: 12,
+    titleFont: { family: '"Space Mono", ui-monospace, monospace', weight: '700', size: 12 }, bodyFont: { family: '"Space Mono", ui-monospace, monospace', size: 12 },
+    titleColor: '#F3F5F9', bodyColor: '#C7CCD6', displayColors: false, caretSize: 6 };
   function base(extra) {
-    var o = { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false } } };
+    var o = { responsive: true, maintainAspectRatio: false, animation: REDUCED ? false : { duration: 700, easing: 'easeOutQuart' },
+      interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false }, tooltip: TOOLTIP } };
     for (var k in extra) o[k] = extra[k];
+    if (o.plugins && !o.plugins.tooltip) o.plugins.tooltip = TOOLTIP;
     return o;
   }
   function draw(id, conf, enough) {
@@ -555,6 +756,8 @@
     empty.style.display = enough ? 'none' : 'flex';
     if (enough && canvas.offsetParent !== null) charts[id] = new Chart(canvas, conf);
   }
+  function YAX(cb) { return { beginAtZero: true, border: { display: false }, grid: { color: C.hair, drawTicks: false }, ticks: { maxTicksLimit: 4, padding: 8, callback: cb } }; }
+  var XAX = { border: { display: false }, grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 6, padding: 6 } };
 
   function drawNow() {
     if (view !== 'now' || !DATA) return;
@@ -566,12 +769,13 @@
     draw('cTemp', {
       type: 'line',
       data: { labels: tl, datasets: [
-        { data: rec.map(function (r) { return Number(r[3]) === 1 ? top : null; }), backgroundColor: css('--flame') + '40', borderWidth: 0, fill: 'origin', pointRadius: 0, stepped: true },
-        { data: rec.map(function (r) { return r[1] === '' ? null : r[1]; }), borderColor: css('--ink'), pointRadius: 0, borderWidth: 2, tension: .3 },
-        { data: rec.map(function (r) { return r[2] === '' ? null : r[2]; }), borderColor: css('--flame'), borderDash: [4, 4], pointRadius: 0, borderWidth: 1.5, stepped: true },
-        { data: rec.map(function (r) { return r[4] === '' ? null : r[4]; }), borderColor: css('--out'), pointRadius: 0, borderWidth: 1.5, tension: .3, spanGaps: true },
+        { label: 'Boiler on', data: rec.map(function (r) { return Number(r[3]) === 1 ? top : null; }), backgroundColor: vgrad('rgba(255,94,26,.32)', 'rgba(255,94,26,.04)'), borderWidth: 0, fill: 'origin', pointRadius: 0, stepped: true },
+        { label: 'Room', data: rec.map(function (r) { return r[1] === '' ? null : r[1]; }), borderColor: C.ink, pointRadius: 0, borderWidth: 2.2, tension: .35 },
+        { label: 'Target', data: rec.map(function (r) { return r[2] === '' ? null : r[2]; }), borderColor: C.e2, borderDash: [5, 5], pointRadius: 0, borderWidth: 1.6, stepped: true },
+        { label: 'Outside', data: rec.map(function (r) { return r[4] === '' ? null : r[4]; }), borderColor: C.frost, pointRadius: 0, borderWidth: 1.8, tension: .35, spanGaps: true },
       ]},
-      options: base({ scales: { y: { min: bottom, max: top, grid: { color: css('--line') } }, x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 4 } } } }),
+      options: base({ plugins: { legend: { display: false }, tooltip: Object.assign({}, TOOLTIP, { filter: function (i) { return i.datasetIndex > 0; }, callbacks: { label: function (c) { return c.dataset.label + '  ' + num(c.raw) + '°'; } } }) },
+        scales: { y: { min: bottom, max: top, border: { display: false }, grid: { color: C.hair, drawTicks: false }, ticks: { maxTicksLimit: 4, padding: 8, callback: function (v) { return v + '°'; } } }, x: Object.assign({}, XAX, { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 4, padding: 6 } }) } }),
     }, rec.length >= 2);
   }
 
@@ -580,61 +784,70 @@
     var all = DATA.days || [];
     var days = range ? all.slice(-range) : all;
     var labels = days.map(function (r) { return dShort(dateOf(r[0])); });
-    var xt = { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 6 } };
     draw('cHours', {
       type: 'bar',
       data: { labels: labels, datasets: [
-        { type: 'bar', data: days.map(function (r) { return r[2]; }), backgroundColor: css('--flame'), borderRadius: 6, yAxisID: 'y', order: 2, maxBarThickness: 36 },
-        { type: 'line', data: days.map(function (r) { return r[6] === '' ? null : r[6]; }), borderColor: css('--out'), backgroundColor: css('--out'), pointRadius: 2, borderWidth: 2, tension: .3, yAxisID: 'y1', order: 1 },
+        { type: 'bar', label: 'Boiler', data: days.map(function (r) { return r[2]; }), backgroundColor: vgrad('#FFB066', 'rgba(255,94,26,.45)'), borderRadius: { topLeft: 8, topRight: 8 }, borderSkipped: false, yAxisID: 'y', order: 2, maxBarThickness: 28 },
+        { type: 'line', label: 'Outside', data: days.map(function (r) { return r[6] === '' ? null : r[6]; }), borderColor: C.frost, backgroundColor: C.frost, pointRadius: 2.5, borderWidth: 2, tension: .35, yAxisID: 'y1', order: 1 },
       ]},
-      options: base({ scales: { y: { beginAtZero: true, grid: { color: css('--line') }, ticks: { callback: function (v) { return v + ' h'; } } }, y1: { position: 'right', grid: { display: false }, ticks: { callback: function (v) { return v + '°'; } } }, x: xt } }),
+      options: base({ plugins: { legend: { display: false }, tooltip: Object.assign({}, TOOLTIP, { callbacks: { label: function (c) { return c.datasetIndex === 0 ? 'Boiler  ' + hm(c.raw * 60) : 'Outside ' + num(c.raw) + '°'; } } }) },
+        scales: { y: YAX(function (v) { return v + ' h'; }), y1: { position: 'right', border: { display: false }, grid: { display: false }, ticks: { maxTicksLimit: 4, callback: function (v) { return v + '°'; } } }, x: XAX } }),
     }, days.length >= 1);
-    draw('cGas', { type: 'bar', data: { labels: labels, datasets: [{ data: days.map(function (r) { return r[9]; }), backgroundColor: css('--gas'), borderRadius: 6, maxBarThickness: 36 }] },
-      options: base({ plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { var r = days[c.dataIndex]; return num(r[9], 2) + ' m³ · ' + lei(r[10]); } } } },
-        scales: { y: { beginAtZero: true, grid: { color: css('--line') }, ticks: { callback: function (v) { return v + ' m³'; } } }, x: xt } }) }, days.length >= 1);
+    draw('cGas', { type: 'bar', data: { labels: labels, datasets: [{ data: days.map(function (r) { return r[9]; }), backgroundColor: vgrad('#5EEAF7', 'rgba(14,165,233,.42)'), borderRadius: { topLeft: 8, topRight: 8 }, borderSkipped: false, maxBarThickness: 28 }] },
+      options: base({ plugins: { legend: { display: false }, tooltip: Object.assign({}, TOOLTIP, { callbacks: { label: function (c) { var r = days[c.dataIndex]; return num(r[9], 2) + ' m³ · ' + lei(r[10]); } } }) },
+        scales: { y: YAX(function (v) { return v + ' m³'; }), x: XAX } }) }, days.length >= 1);
 
     var todayKey = keyOf(dateOf(DATA.now));
     var fullDays = days.filter(function (r) { return r[0] !== todayKey; });
     var withOut = fullDays.filter(function (r) { return r[6] !== '' && r[8] !== ''; });
     draw('cScatter', {
       type: 'scatter',
-      data: { datasets: [{ data: withOut.map(function (r) { return { x: r[6], y: r[8], d: r[0] }; }), backgroundColor: css('--flame'), pointRadius: 5 }] },
+      data: { datasets: [{ data: withOut.map(function (r) { return { x: r[6], y: r[8], d: r[0] }; }), backgroundColor: 'rgba(255,159,67,.85)', borderColor: C.e1, borderWidth: 1, pointRadius: 5 }] },
       options: base({ interaction: { mode: 'nearest', intersect: true },
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return dShort(dateOf(c.raw.d)) + ': ' + num(c.raw.y) + ' kWh at ' + num(c.raw.x) + '°'; } } } },
-        scales: { x: { title: { display: true, text: 'Avg outside °C' }, grid: { color: css('--line') } }, y: { beginAtZero: true, title: { display: true, text: 'kWh' }, grid: { color: css('--line') } } } }),
+        plugins: { legend: { display: false }, tooltip: Object.assign({}, TOOLTIP, { callbacks: { label: function (c) { return dShort(dateOf(c.raw.d)) + ': ' + num(c.raw.y) + ' kWh at ' + num(c.raw.x) + '°'; } } }) },
+        scales: { x: { border: { display: false }, grid: { color: C.hair }, title: { display: true, text: 'Avg outside °C' } }, y: Object.assign(YAX(), { title: { display: true, text: 'kWh' } }) } }),
     }, withOut.length >= 3);
     var eff = fullDays.filter(function (r) { return r[11] !== '' && Number(r[7]) >= 3; });
     draw('cEff', { type: 'line', data: { labels: eff.map(function (r) { return dShort(dateOf(r[0])); }),
-      datasets: [{ data: eff.map(function (r) { return r[11]; }), borderColor: css('--flame'), backgroundColor: css('--flame'), pointRadius: 3, tension: .3 }] },
-      options: base({ scales: { y: { beginAtZero: true, grid: { color: css('--line') } }, x: xt } }) }, eff.length >= 3);
+      datasets: [{ data: eff.map(function (r) { return r[11]; }), borderColor: C.e2, backgroundColor: vgrad('rgba(255,159,67,.25)', 'rgba(255,159,67,0)'), fill: 'origin', pointRadius: 3, tension: .35 }] },
+      options: base({ scales: { y: YAX(), x: XAX } }) }, eff.length >= 3);
     el('effNote').textContent = 'How much gas energy each degree of cold below ' + DATA.settings.hddBase + '°C costs you. Lower is better; it should stay flat if nothing changes in the house.';
     drawHeatmap();
   }
 
+  // thermal scale: dark → ember → amber → white-hot
+  var STOPS = [[0, [26, 29, 38]], [.25, [122, 42, 12]], [.55, [255, 94, 26]], [.8, [255, 159, 67]], [1, [255, 241, 214]]];
+  function thermal(a) {
+    for (var i = 1; i < STOPS.length; i++) if (a <= STOPS[i][0]) {
+      var p = STOPS[i - 1], q = STOPS[i], k = (a - p[0]) / (q[0] - p[0]);
+      return 'rgb(' + p[1].map(function (v, j) { return Math.round(v + (q[1][j] - v) * k); }).join(',') + ')';
+    }
+    return 'rgb(255,241,214)';
+  }
   function drawHeatmap() {
     var H = DATA.heatmap || { grid: [], days: [] }, g = H.grid || [], box = el('hm');
     var max = 0; g.forEach(function (r) { r.forEach(function (v) { if (v > max) max = v; }); });
     var logged = (H.days || []).reduce(function (a, b) { return a + b; }, 0);
-    el('hmDays').textContent = logged ? 'avg over ' + logged + ' day' + (logged === 1 ? '' : 's') : '';
-    var flame = css('--flame'), html = '<div></div>';
+    el('hmDays').textContent = logged ? 'avg · ' + logged + 'd' : '';
+    var html = '<div></div>';
     for (var h = 0; h < 24; h += 6) html += '<div class="hr">' + ('0' + h).slice(-2) + ':00</div>';
     for (var d = 0; d < 7; d++) {
       html += '<div class="lab">' + DAYS[d] + '</div>';
       for (var hh = 0; hh < 24; hh++) {
-        var v = (g[d] && g[d][hh]) || 0, a = max ? v / max : 0;
-        var bg = v > 0 ? 'background:color-mix(in srgb, ' + flame + ' ' + Math.round(15 + a * 85) + '%, var(--card2))' : '';
-        html += '<button class="c" style="' + bg + '" data-d="' + d + '" data-h="' + hh + '" data-v="' + v + '" aria-label="' + DAYS[d] + ' ' + hh + ':00, ' + Math.round(v) + ' minutes"></button>';
+        var v = (g[d] && g[d][hh]) || 0;
+        var bg = v > 0 ? 'background:' + thermal(Math.sqrt(v / max)) : '';
+        html += '<button class="c" style="' + bg + '" data-d="' + d + '" data-h="' + hh + '" data-v="' + v + '"></button>';
       }
     }
     box.innerHTML = html;
     var sel = hmSel && box.querySelector('.c[data-d="' + hmSel[0] + '"][data-h="' + hmSel[1] + '"]');
-    if (sel) pickCell(sel); else el('hmPick').textContent = logged ? 'Tap a square' : 'Fills in as days are logged';
+    if (sel) pickCell(sel); else el('hmPick').textContent = logged ? 'tap a square' : 'fills in as days are logged';
   }
   function pickCell(c) {
     document.querySelectorAll('#hm .c.sel').forEach(function (x) { x.classList.remove('sel'); });
     c.classList.add('sel'); hmSel = [c.dataset.d, c.dataset.h];
     var h = Number(c.dataset.h);
-    el('hmPick').textContent = DAYS[c.dataset.d] + ' ' + ('0' + h).slice(-2) + '–' + ('0' + ((h + 1) % 24)).slice(-2) + ': ' + Math.round(Number(c.dataset.v)) + ' min';
+    el('hmPick').textContent = DAYS[c.dataset.d] + ' ' + ('0' + h).slice(-2) + '–' + ('0' + ((h + 1) % 24)).slice(-2) + ' · ' + Math.round(Number(c.dataset.v)) + ' min';
   }
 
   function renderTables() {
@@ -650,16 +863,18 @@
       (mk.length ? mk.map(function (k) {
         var x = months[k], name = new Date(k + '-01T12:00:00').toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
         var o = x.outs.length ? avg(x.outs) : NaN;
-        return '<tr><td>' + name + '<br><span class="small">' + x.n + ' days' + (isFinite(o) ? ' · ' + num(o) + '° out' : '') + '</span></td><td>' + hm(x.min) + '</td><td>' + num(x.m3, 1) + ' m³</td><td>' + lei(x.lei) + '</td></tr>';
+        return '<tr><td><b>' + name + '</b><br><span class="small">' + x.n + ' days' + (isFinite(o) ? ' · <span class="c-frost">' + num(o) + '°</span>' : '') + '</span></td><td class="c-ember">' + hm(x.min) + '</td><td class="c-gas">' + num(x.m3, 1) + ' m³</td><td class="c-amber">' + lei(x.lei) + '</td></tr>';
       }).join('') : '<tr><td colspan="4">No data yet</td></tr>');
 
-    var M = DATA.meter || [];
-    el('meter').innerHTML = M.length ? M.slice().reverse().map(function (r, i) {
-        var rate = r.heatMin > 2 ? r.m3 / (r.heatMin / 60) : '';
-        var a = dateOf(r.from), b = dateOf(r.to), sameDay = keyOf(a) === keyOf(b);
-        return '<div class="mrow"' + (i ? '' : ' style="border-top:0"') + '><div class="split"><b class="num">' + dShort(a) + ' ' + tShort(a) + ' → ' + (sameDay ? '' : dShort(b) + ' ') + tShort(b) + '</b><b class="num">' + num(r.m3, 3) + ' m³</b></div>' +
-          '<div class="small num">Boiler ' + hm(r.heatMin) + (rate === '' ? '' : ' · ' + num(rate, 2) + ' m³ per boiler hour') + '</div>' + (r.note ? '<div class="small">' + esc(r.note) + '</div>' : '') + '</div>';
-      }).join('') : '<p class="sub" style="margin:0">Add two readings to compare the meter with the logged boiler time.</p>';
+    var M = DATA.meter || [], expected = S.kwhPerHour / S.kwhPerM3;
+    el('meter').innerHTML = M.length ? '<div class="tl">' + M.slice().reverse().map(function (r) {
+      var rate = r.heatMin > 2 ? r.m3 / (r.heatMin / 60) : null;
+      var a = dateOf(r.from), b = dateOf(r.to), sameDay = keyOf(a) === keyOf(b);
+      var drift = rate !== null && Math.abs(rate - expected) / expected > 0.15;
+      return '<div class="tl-item"><div class="row"><span class="when">' + dShort(a) + ' ' + tShort(a) + ' → ' + (sameDay ? '' : dShort(b) + ' ') + tShort(b) + '</span><span class="m3">' + num(r.m3, 3) + ' m³</span></div>' +
+        '<div class="small num" style="margin-top:4px">Boiler ' + hm(r.heatMin) + (r.note ? ' · ' + esc(r.note) : '') + '</div>' +
+        (rate !== null ? '<span class="rate ' + (drift ? 'drift' : 'ok') + '">' + num(rate, 2) + ' m³/h' + (drift ? ' · off calibration' : ' · on calibration') + '</span>' : '') + '</div>';
+    }).join('') + '</div>' : '<p class="sub" style="margin:0">Add two readings to compare the meter with the logged boiler time.</p>';
 
     el('assumptions').textContent = 'Each hour the boiler runs uses about ' + num(S.kwhPerHour / S.kwhPerM3, 2) + ' m³ (' + num(S.kwhPerHour, 1) + ' kWh)' + (S.measured ? ', measured with your meter' : ', an assumption until you measure it') +
       '. Gas is priced at ' + num(S.price, 2) + ' lei/kWh incl. VAT, ' + num(S.kwhPerM3, 2) + ' kWh per m³. Outside temperature comes from Open-Meteo for your area.';
@@ -668,37 +883,55 @@
   // ---------------- controls ----------------
   function setView(v, redraw) {
     view = v; store(VIEW_NAME, v);
-    ['now', 'trends', 'meter'].forEach(function (x) { el('view-' + x).classList.toggle('on', x === v); });
-    document.querySelectorAll('.tabbar button').forEach(function (b) { b.setAttribute('aria-selected', String(b.dataset.view === v)); });
+    VIEWS.forEach(function (x) { el('view-' + x).classList.toggle('on', x === v); });
+    document.querySelectorAll('.dock button').forEach(function (b) { b.setAttribute('aria-selected', String(b.dataset.view === v)); });
+    el('dockThumb').style.transform = 'translateX(' + (VIEWS.indexOf(v) * 100) + '%)';
     el('viewTitle').textContent = TITLES[v];
     window.scrollTo(0, 0);
-    if (redraw !== false && DATA) { drawNow(); drawTrends(); }
+    if (redraw !== false) { stagger(v); if (DATA) { drawNow(); drawTrends(); } }
   }
   function setRange(d, redraw) {
     range = d; store(RANGE_NAME, String(d));
-    document.querySelectorAll('#range button').forEach(function (b) { b.setAttribute('aria-pressed', String(Number(b.dataset.d) === d)); });
+    var idx = 0;
+    document.querySelectorAll('#range button').forEach(function (b, i) { var on = Number(b.dataset.d) === d; b.setAttribute('aria-pressed', String(on)); if (on) idx = i; });
+    el('rangeThumb').style.transform = 'translateX(' + (idx * 100) + '%)';
     if (redraw && DATA) drawTrends();
   }
   function bind() {
-    document.querySelector('.tabbar').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) setView(b.dataset.view); });
+    document.querySelector('.dock').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b && b.dataset.view !== view) setView(b.dataset.view); });
     el('range').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) setRange(Number(b.dataset.d), true); });
-    el('refresh').addEventListener('click', fetchData);
-    document.querySelector('details.more').addEventListener('toggle', function () { if (DATA) drawTrends(); });
-    el('hm').addEventListener('click', function (e) {
-      var c = e.target.closest('.c'); if (c) pickCell(c);
+    el('refresh').addEventListener('click', function () { fetchData(true); });
+    el('weatherAcc').addEventListener('toggle', function () { if (DATA) drawTrends(); });
+    el('hm').addEventListener('click', function (e) { var c = e.target.closest('.c'); if (c) pickCell(c); });
+
+    // odometer: digits only, jump to the red part after 5 digits, accept a pasted "03284,089"
+    var whole = el('meterWhole'), dec = el('meterDec');
+    whole.addEventListener('input', function () {
+      var raw = whole.value.replace(/\s/g, '');
+      var p = raw.split(/[.,]/);
+      if (p.length > 1) { whole.value = p[0].replace(/\D/g, '').slice(0, 6); dec.value = p[1].replace(/\D/g, '').slice(0, 3); dec.focus(); return; }
+      whole.value = raw.replace(/\D/g, '').slice(0, 6);
+      if (whole.value.length >= 5) dec.focus();
     });
+    dec.addEventListener('input', function () { dec.value = dec.value.replace(/\D/g, '').slice(0, 3); });
+    dec.addEventListener('keydown', function (e) { if (e.key === 'Backspace' && !dec.value) whole.focus(); });
+
     el('meterForm').addEventListener('submit', function (e) {
       e.preventDefault();
-      var v = el('meterIn').value.trim().replace(/\s/g, '').replace(',', '.'), msg = el('meterMsg');
-      if (!/^\d+(\.\d+)?$/.test(v)) { msg.textContent = 'Type the number from the meter, e.g. 03284,089.'; return; }
-      el('meterBtn').disabled = true; msg.textContent = 'Saving…';
+      var w = whole.value.replace(/\D/g, ''), d2 = dec.value.replace(/\D/g, ''), msg = el('meterMsg'), btn = el('meterBtn');
+      if (!w) { msg.textContent = 'Type the black digits first, e.g. 03284.'; whole.focus(); return; }
+      var v = w + (d2 ? '.' + d2 : '');
+      btn.disabled = true; btn.textContent = '…'; msg.textContent = 'Saving…';
       api({ action: 'meter', value: v }).then(function (res) {
         if (!res.ok) throw new Error(res.error);
         DATA = res.data; store(DATA_NAME, JSON.stringify(DATA)); render(false);
-        el('meterIn').value = ''; msg.textContent = 'Saved ' + num(Number(v), 3) + ' m³.';
+        whole.value = ''; dec.value = ''; msg.textContent = 'Saved ' + num(Number(v), 3) + ' m³.';
+        btn.classList.add('ok'); btn.innerHTML = CHECK;
+        setTimeout(function () { btn.classList.remove('ok'); btn.textContent = 'Save'; }, 1400);
       }).catch(function (err) {
-        msg.textContent = 'Not saved: ' + (err && err.message && err.message !== 'failed' ? err.message : 'couldn’t reach your Google script.') + ' Your number is still in the box.';
-      }).then(function () { el('meterBtn').disabled = false; });
+        btn.textContent = 'Save';
+        msg.textContent = 'Not saved: ' + (err && err.message && err.message !== 'failed' ? err.message : 'your Google script didn’t answer.') + ' Your number is still in the boxes.';
+      }).then(function () { btn.disabled = false; });
     });
   }
 })();
