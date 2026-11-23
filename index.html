@@ -2,55 +2,480 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gas</title>
-<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Heating &amp; gas</title>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta name="googlebot" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Gas">
-<meta name="theme-color" content="#181614">
+<meta name="theme-color" content="#141414">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  :root { color-scheme: dark; }
-  body { margin:0; min-height:100vh; display:grid; place-items:center; background:#181614; color:#f2f2f2;
-         font:16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align:center; }
-  main { padding:24px 20px; max-width:360px; }
-  img { width:96px; height:96px; border-radius:22px; }
-  h1 { font-size:22px; margin:16px 0 8px; }
-  p { color:#b5b0aa; margin:8px 0; }
-  a.btn { display:inline-block; margin-top:16px; padding:12px 20px; border-radius:12px; background:#e0622b; color:#fff;
-          text-decoration:none; font-weight:600; min-height:44px; box-sizing:border-box; }
-  #install { display:none; }
-  ol { text-align:left; color:#d8d3cc; padding-left:20px; }
+  :root {
+    --bg:#f6f5f2; --card:#fff; --ink:#1d1d1f; --mute:#62626a; --heat:#d9541c; --cool:#2b6fe0; --out:#1f8a7d;
+    --line:#e5e3de; --warn-bg:#fff4d6; --warn-ink:#7a5200; --err:#b42318;
+    --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --r:14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#141414; --card:#1e1e1e; --ink:#f2f2f2; --mute:#a3a3a8; --line:#2e2e2e; --heat:#e8682f; --warn-bg:#3a2e10; --warn-ink:#ffd27a; --err:#ff8a7a; }
+  }
+  * { box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; overflow-x:hidden; background:var(--bg); }
+  body { margin:0; font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:minmax(0,1fr); gap:var(--s3);
+    padding: calc(var(--s4) + env(safe-area-inset-top)) calc(var(--s3) + env(safe-area-inset-right)) calc(var(--s5) + env(safe-area-inset-bottom)) calc(var(--s3) + env(safe-area-inset-left)); }
+  main > * { min-width:0; }
+  header { display:flex; align-items:center; justify-content:space-between; gap:var(--s2); }
+  h1 { font-size:22px; line-height:1.2; margin:0; }
+  .sub { color:var(--mute); font-size:13px; }
+  button, input { font:inherit; }
+  .btn { border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:12px; padding:0 14px; font-size:14px; cursor:pointer; min-height:44px; }
+  .btn.primary { background:var(--heat); border-color:var(--heat); color:#fff; font-weight:600; }
+  .btn:disabled { opacity:.55; }
+  .btn:focus-visible, .seg button:focus-visible, input:focus-visible { outline:2px solid var(--cool); outline-offset:2px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:var(--s4); min-width:0; }
+  .card h2 { font-size:13px; margin:0 0 var(--s3); color:var(--mute); font-weight:650; text-transform:uppercase; letter-spacing:.05em; display:flex; justify-content:space-between; align-items:center; gap:var(--s2); }
+  .banner { display:none; border-radius:var(--r); padding:var(--s3) var(--s4); background:var(--warn-bg); color:var(--warn-ink); font-size:14px; }
+  .banner.err { background:color-mix(in srgb, var(--err) 14%, var(--card)); color:var(--err); }
+  .banner button { margin-top:var(--s2); }
+  /* live */
+  .live { display:grid; gap:var(--s4); }
+  .pill { display:inline-flex; align-items:center; gap:var(--s2); padding:6px 12px; border-radius:999px; font-weight:650; font-size:15px; background:var(--line); }
+  .pill .dot { width:10px; height:10px; border-radius:50%; background:var(--mute); }
+  .pill.on { background:color-mix(in srgb, var(--heat) 18%, transparent); color:var(--heat); }
+  .pill.on .dot { background:var(--heat); animation:pulse 1.6s infinite; }
+  .pill.win { background:color-mix(in srgb, var(--cool) 18%, transparent); color:var(--cool); }
+  .pill.stale { opacity:.6; } .pill.stale .dot { animation:none; }
+  @keyframes pulse { 50% { opacity:.35; } }
+  @media (prefers-reduced-motion: reduce) { .pill.on .dot { animation:none; } }
+  .trio { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--s2); }
+  .l { color:var(--mute); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+  .v { font-size:24px; font-weight:700; line-height:1.2; margin-top:2px; font-variant-numeric:tabular-nums; }
+  .temps .v { font-size:30px; }
+  .d { color:var(--mute); font-size:13px; font-variant-numeric:tabular-nums; }
+  .grid2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--s4) var(--s2); }
+  .bar { height:6px; border-radius:3px; background:var(--line); overflow:hidden; margin-top:var(--s4); }
+  .bar > i { display:block; height:100%; background:var(--heat); }
+  .note { color:var(--mute); font-size:13px; margin-top:var(--s3); }
+  /* charts */
+  .charts-head { display:flex; justify-content:space-between; align-items:center; gap:var(--s2); flex-wrap:wrap; margin-top:var(--s3); }
+  .charts-head h2 { font-size:17px; margin:0; text-transform:none; letter-spacing:0; color:var(--ink); }
+  .seg { display:inline-flex; background:var(--line); border-radius:12px; padding:3px; gap:2px; }
+  .seg button { border:0; background:transparent; color:var(--ink); padding:0 12px; min-height:38px; border-radius:9px; font-size:14px; cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--card); font-weight:650; box-shadow:0 1px 2px rgba(0,0,0,.15); }
+  .charts { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--s3); }
+  .chart { position:relative; height:220px; }
+  .empty { position:absolute; inset:0; display:none; align-items:center; justify-content:center; text-align:center; color:var(--mute); font-size:14px; padding:var(--s4); background:var(--card); }
+  .legend { display:flex; flex-wrap:wrap; gap:var(--s3); font-size:13px; color:var(--mute); margin-top:var(--s2); }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:-1px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; }
+  th, td { padding:var(--s2) 6px; text-align:right; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th:first-child, td:first-child { text-align:left; }
+  th { color:var(--mute); font-weight:600; font-size:12px; text-transform:uppercase; }
+  td[colspan] { white-space:normal; text-align:left; color:var(--mute); }
+  .scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  details summary { cursor:pointer; color:var(--mute); font-size:13px; margin-top:var(--s3); }
+  .row { display:flex; gap:var(--s2); margin-top:var(--s3); }
+  .row input { flex:1; min-width:0; min-height:44px; border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:12px; padding:0 12px; font-size:16px; }
+  .info { border:0; background:none; color:var(--mute); font-size:13px; text-decoration:underline dotted; padding:0; cursor:pointer; text-transform:none; letter-spacing:0; font-weight:500; min-height:32px; }
+  /* skeleton */
+  .sk .v, .sk .d { color:transparent !important; background:var(--line); border-radius:6px; }
+  /* setup screen */
+  #setup { display:none; min-height:100vh; place-items:center; text-align:center; padding:calc(var(--s5) + env(safe-area-inset-top)) var(--s5) var(--s5); }
+  #setup .box { max-width:360px; }
+  #setup img { width:88px; height:88px; border-radius:20px; }
+  #setup h1 { margin:var(--s4) 0 var(--s2); }
+  #setup p, #setup li { color:var(--mute); }
+  #setup ol { text-align:left; padding-left:20px; }
+  body.setup main { display:none; } body.setup #setup { display:grid; }
+  @media (min-width:700px) {
+    h1 { font-size:26px; }
+    .live { grid-template-columns:auto 1fr; align-items:center; }
+    .temps .v { font-size:36px; }
+    .grid2 { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .chart { height:260px; }
+  }
+  @media (min-width:960px) { .charts { grid-template-columns:repeat(2,minmax(0,1fr)); } .wide { grid-column:1 / -1; } }
 </style>
 </head>
 <body>
-<main>
-  <img src="icon-192.png" alt="">
-  <h1>Heating &amp; gas</h1>
-  <div id="install">
-    <p>Add this page to your Home Screen:</p>
-    <ol>
-      <li>Tap the <strong>Share</strong> button in Safari.</li>
-      <li>Choose <strong>Add to Home Screen</strong>.</li>
-      <li>Keep the name <strong>Gas</strong> and tap <strong>Add</strong>.</li>
-    </ol>
-    <p>The new icon opens your dashboard directly.</p>
+<div id="setup">
+  <div class="box">
+    <img src="icon-192.png" alt="">
+    <h1 id="setupTitle">Heating &amp; gas</h1>
+    <div id="setupNeedKey">
+      <p>This app needs your private key once.</p>
+      <ol>
+        <li>On a computer, open your <b>Thermostat &amp; Gas</b> sheet.</li>
+        <li>Choose <b>Thermostat → Set up phone app (QR)…</b></li>
+        <li>Scan the code with the iPhone camera and open it in Safari.</li>
+      </ol>
+    </div>
+    <div id="setupInstall" style="display:none">
+      <p>Key received. Now install the app:</p>
+      <ol>
+        <li>Tap <b>Share</b> in Safari.</li>
+        <li>Choose <b>Add to Home Screen</b>, keep the name <b>Gas</b>, tap <b>Add</b>.</li>
+        <li>Open <b>Gas</b> from your Home Screen. It runs fullscreen.</li>
+      </ol>
+      <button class="btn" id="useInSafari">Or just use it here in Safari</button>
+    </div>
   </div>
-  <p id="go">Opening your dashboard…</p>
-  <a class="btn" id="link" href="https://script.google.com/macros/s/AKfycbzsMgWjkXWzbay8kxhFHKT-rIX46-usNDv8eZwpM2qNbwtBiZMZypx8FmUl5Dnqdce3/exec">Open dashboard</a>
+</div>
+
+<main>
+  <header>
+    <div>
+      <h1>Heating &amp; gas</h1>
+      <div class="sub" id="updated" aria-live="polite">Loading…</div>
+    </div>
+    <button class="btn" id="refresh" aria-label="Refresh data">↻ Refresh</button>
+  </header>
+
+  <div class="banner" id="stale" role="status"></div>
+  <div class="banner err" id="err" role="alert"></div>
+
+  <section class="card live sk" id="liveCard" aria-label="Current status">
+    <div><span class="pill" id="pill"><span class="dot"></span><span id="pillText">Loading</span></span>
+      <div class="sub" id="since" style="margin-top:6px">&nbsp;</div></div>
+    <div class="trio temps">
+      <div><div class="l">Room</div><div class="v" id="tRoom">00,0°</div></div>
+      <div><div class="l">Target</div><div class="v" id="tSet">00,0°</div></div>
+      <div><div class="l">Outside</div><div class="v" id="tOut">00,0°</div></div>
+    </div>
+  </section>
+
+  <section class="card sk" id="runCard">
+    <h2>Boiler run time</h2>
+    <div class="trio" id="runtime">
+      <div><div class="l">Today</div><div class="v">0 min</div><div class="d">0,00 m³</div></div>
+      <div><div class="l">This week</div><div class="v">0 min</div><div class="d">0,00 m³</div></div>
+      <div><div class="l">This month</div><div class="v">0 min</div><div class="d">0,00 m³</div></div>
+    </div>
+  </section>
+
+  <section class="card sk" id="monthCard">
+    <h2><span id="monthTitle">This month</span></h2>
+    <div class="grid2" id="forecast"></div>
+    <div class="bar" aria-hidden="true"><i id="monthBar" style="width:0"></i></div>
+    <div class="note" id="forecastNote"></div>
+  </section>
+
+  <div class="charts-head">
+    <h2>Charts</h2>
+    <div class="seg" id="range" role="group" aria-label="Chart period">
+      <button data-d="7" aria-pressed="true">7 d</button><button data-d="30" aria-pressed="false">30 d</button><button data-d="90" aria-pressed="false">90 d</button><button data-d="0" aria-pressed="false">All</button>
+    </div>
+  </div>
+
+  <section class="charts">
+    <div class="card"><h2>Burner hours per day</h2><div class="chart"><canvas id="cHours" role="img" aria-label="Burner hours per day"></canvas><div class="empty">Shows up after the first full day.</div></div>
+      <div class="legend"><span><i style="background:var(--heat)"></i>Burner hours</span><span><i style="background:var(--out)"></i>Avg outside °C</span></div></div>
+    <div class="card"><h2>Gas per day</h2><div class="chart"><canvas id="cGas" role="img" aria-label="Estimated gas per day in cubic metres"></canvas><div class="empty">Shows up after the first full day.</div></div>
+      <div class="legend"><span><i style="background:var(--cool)"></i>m³ (estimated, heating only)</span></div></div>
+    <div class="card wide"><h2>Last 48 hours</h2><div class="chart"><canvas id="cTemp" role="img" aria-label="Room, target and outside temperature over the last 48 hours"></canvas><div class="empty">No readings yet.</div></div>
+      <div class="legend"><span><i style="background:var(--ink)"></i>Room</span><span><i style="background:var(--heat)"></i>Target</span><span><i style="background:var(--out)"></i>Outside</span><span><i style="background:color-mix(in srgb,var(--heat) 25%,transparent)"></i>Boiler on</span></div></div>
+    <div class="card"><h2>Gas vs outside temperature <button class="info" data-tip="scatter">what is this?</button></h2><div class="chart"><canvas id="cScatter" role="img" aria-label="Daily gas use against average outside temperature"></canvas><div class="empty">Needs about 3 days of data.</div></div>
+      <div class="note" id="tip-scatter" hidden>Each dot is one day. Colder days should sit higher. A dot well above the others used more gas than the weather explains (window open, higher target, guests…).</div></div>
+    <div class="card"><h2>Efficiency <button class="info" data-tip="eff">what is this?</button></h2><div class="chart"><canvas id="cEff" role="img" aria-label="Gas energy per degree-day"></canvas><div class="empty">Needs a few cold days of data.</div></div>
+      <div class="note" id="tip-eff" hidden></div></div>
+  </section>
+
+  <section class="card">
+    <h2>By month</h2>
+    <div class="scroll"><table id="months"></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Gas meter</h2>
+    <form id="meterForm" autocomplete="off">
+      <label class="l" for="meterIn">Add a reading (m³, with decimals)</label>
+      <div class="row">
+        <input id="meterIn" name="value" inputmode="decimal" placeholder="e.g. 3284,089" required>
+        <button class="btn primary" id="meterBtn" type="submit">Save</button>
+      </div>
+      <div class="note" id="meterMsg" role="status"></div>
+    </form>
+    <div class="scroll" style="margin-top:12px"><table id="meter"></table></div>
+    <div class="note">Meter m³ includes the stove and hot water, so over longer periods it reads higher than the heating estimate. For a clean boiler test, use nothing else on gas between two readings.</div>
+  </section>
+
+  <div class="note" id="assumptions"></div>
 </main>
+
 <script>
-  // Open this page once as .../?install to see the instructions; the address is cleaned
-  // so the saved Home Screen shortcut points at the plain page, which forwards straight on.
-  var DASHBOARD = document.getElementById('link').href;
-  if (/[?&]install\b/.test(location.search)) {
-    document.getElementById('install').style.display = 'block';
-    document.getElementById('go').style.display = 'none';
-    history.replaceState(null, '', location.pathname);
-  } else {
-    location.replace(DASHBOARD);
+(function () {
+  'use strict';
+  var API = 'https://script.google.com/macros/s/AKfycbzsMgWjkXWzbay8kxhFHKT-rIX46-usNDv8eZwpM2qNbwtBiZMZypx8FmUl5Dnqdce3/exec';
+  var KEY_NAME = 'gas-dashboard:key', DATA_NAME = 'gas-dashboard:data', RANGE_NAME = 'gas-dashboard:range';
+  var STALE_MIN = 15;
+  var DATA = null, charts = {}, range = 7, busy = false;
+
+  function store(k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+  function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function el(id) { return document.getElementById(id); }
+  var standalone = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+
+  // ---- key handling: the key arrives once in the #k=… fragment (never sent to any server) ----
+  var m = /[#&]k=([A-Za-z0-9]{32,})/.exec(location.hash);
+  if (m) {
+    store(KEY_NAME, m[1]);
+    if (standalone) history.replaceState(null, '', location.pathname); // keep it out of the address from now on
   }
+  var KEY = load(KEY_NAME);
+
+  function showSetup(mode) {
+    document.body.classList.add('setup');
+    el('setupNeedKey').style.display = mode === 'install' ? 'none' : 'block';
+    el('setupInstall').style.display = mode === 'install' ? 'block' : 'none';
+  }
+  el('useInSafari').addEventListener('click', function () {
+    history.replaceState(null, '', location.pathname);
+    document.body.classList.remove('setup');
+    start();
+  });
+
+  if (!KEY) { showSetup('need'); return; }
+  if (m && !standalone) { showSetup('install'); return; } // in Safari with a fresh key: guide to Add to Home Screen first
+  start();
+
+  // ---------------- formatting ----------------
+  function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+  function num(n, d) { if (n === '' || n === null || n === undefined || isNaN(n)) return '–'; d = d === undefined ? 1 : d; return Number(n).toLocaleString('ro-RO', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function hm(min) { min = Math.round(min); var h = Math.floor(min / 60), mm = min % 60; return h ? h + ' h ' + (mm < 10 ? '0' : '') + mm + ' m' : mm + ' min'; }
+  function dateOf(s) { return new Date(String(s).replace(' ', 'T')); }
+  function keyOf(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function dShort(d) { return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); }
+  function tShort(d) { return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); }
+  function sumRows(rows, i) { return rows.reduce(function (a, r) { return a + (Number(r[i]) || 0); }, 0); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // ---------------- data ----------------
+  function start() {
+    bindControls();
+    Chart.defaults.color = css('--mute');
+    Chart.defaults.borderColor = css('--line');
+    Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+    Chart.defaults.font.size = 12;
+    var saved = Number(load(RANGE_NAME));
+    if ([0, 7, 30, 90].indexOf(saved) >= 0 && load(RANGE_NAME) !== null) setRange(saved, false);
+    var cached = load(DATA_NAME);
+    if (cached) { try { DATA = JSON.parse(cached); render(true); } catch (e) {} }
+    fetchData();
+    setInterval(fetchData, 5 * 60 * 1000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) fetchData(); });
+  }
+
+  function api(body) {
+    body.k = KEY;
+    return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow', cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); });
+  }
+
+  function fetchData() {
+    if (busy) return;
+    busy = true;
+    el('refresh').disabled = true; el('refresh').textContent = 'Updating…';
+    api({ action: 'data' }).then(function (res) {
+      if (!res.ok && res.error === 'unauthorized') { store(KEY_NAME, null); store(DATA_NAME, null); showSetup('need'); return; }
+      if (!res.ok) throw new Error(res.error || 'failed');
+      DATA = res.data; store(DATA_NAME, JSON.stringify(DATA));
+      el('err').style.display = 'none';
+      render(false);
+    }).catch(function () {
+      var e = el('err');
+      e.innerHTML = 'Couldn’t reach your Google script' + (DATA ? '. Showing the data from ' + esc(tShort(dateOf(DATA.now))) + '.' : '.') +
+        '<br><button class="btn" type="button">Try again</button>';
+      e.querySelector('button').onclick = fetchData;
+      e.style.display = 'block';
+    }).then(function () { busy = false; el('refresh').disabled = false; el('refresh').textContent = '↻ Refresh'; });
+  }
+
+  // ---------------- render ----------------
+  function render(fromCache) {
+    var D = DATA, S = D.settings, now = fromCache ? new Date() : dateOf(D.now), all = D.days || [];
+    ['liveCard', 'runCard', 'monthCard'].forEach(function (id) { el(id).classList.remove('sk'); });
+    var L = D.live || {};
+    var ageMin = L.time ? (now - dateOf(L.time)) / 60000 : Infinity;
+    var stale = ageMin > STALE_MIN;
+    el('updated').textContent = L.time ? 'Last reading ' + dShort(dateOf(L.time)) + ', ' + tShort(dateOf(L.time)) + (fromCache ? ' · updating…' : '') : 'No readings yet';
+
+    var st = el('stale');
+    if (stale && L.time) {
+      st.textContent = 'No new readings since ' + tShort(dateOf(L.time)) + ' (' + hm(ageMin) + ' ago). Logging may have stopped: check the Tuya connection or the sheet’s Thermostat menu.';
+      st.style.display = 'block';
+    } else st.style.display = 'none';
+
+    // live
+    var pill = el('pill');
+    pill.className = 'pill' + (L.window ? ' win' : L.heating ? ' on' : '') + (stale ? ' stale' : '');
+    el('pillText').textContent = stale ? 'Status unknown' : L.window ? 'Window open' : L.heating ? 'Boiler heating' : (L.power === false ? 'Thermostat off' : 'Idle');
+    el('since').textContent = L.since && !stale ? 'Since ' + tShort(dateOf(L.since)) + (L.mode ? ' · ' + L.mode + ' mode' : '') : ' ';
+    el('tRoom').textContent = L.room === undefined || L.room === '' ? '–' : num(L.room) + '°';
+    el('tSet').textContent = L.set === undefined || L.set === '' ? '–' : num(L.set) + '°';
+    el('tOut').textContent = L.outside === undefined || L.outside === '' ? '–' : num(L.outside) + '°';
+
+    // run time
+    var todayKey = keyOf(now), monthKey = todayKey.slice(0, 7);
+    var monday = new Date(now); monday.setHours(0, 0, 0, 0); monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+    var liveMin = (L.heating && !stale) ? Math.min(S.maxGapMin || 15, Math.max(0, ageMin)) : 0;
+    function bucket(f) { var r = all.filter(f); return { min: sumRows(r, 1), m3: sumRows(r, 9), lei: sumRows(r, 10), n: r.length }; }
+    var t = bucket(function (r) { return r[0] === todayKey; });
+    var w = bucket(function (r) { return r[0] >= keyOf(monday); });
+    var mo = bucket(function (r) { return String(r[0]).slice(0, 7) === monthKey; });
+    var perMin = S.kwhPerHour / 60;
+    [t, w, mo].forEach(function (b) { b.min += liveMin; b.m3 += liveMin * perMin / S.kwhPerM3; b.lei += liveMin * perMin * S.price; });
+    el('runtime').innerHTML = [['Today', t], ['This week', w], ['This month', mo]].map(function (x) {
+      return '<div><div class="l">' + x[0] + '</div><div class="v">' + hm(x[1].min) + '</div><div class="d">' + num(x[1].m3, 2) + ' m³ · ' + num(x[1].lei, x[1].lei < 10 ? 1 : 0) + ' lei</div></div>';
+    }).join('');
+
+    // month
+    var dim = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    var elapsed = (now.getDate() - 1) + (now.getHours() * 60 + now.getMinutes()) / 1440;
+    var full = all.filter(function (r) { return String(r[0]).slice(0, 7) === monthKey && r[0] !== todayKey; });
+    var fullDays = full.length;
+    var avgLei = fullDays ? sumRows(full, 10) / fullDays : 0, avgM3 = fullDays ? sumRows(full, 9) / fullDays : 0, avgMin = fullDays ? sumRows(full, 1) / fullDays : 0;
+    var remaining = dim - elapsed;
+    var canProject = fullDays >= 3;
+    el('monthTitle').textContent = now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    el('forecast').innerHTML = [
+      ['So far', num(mo.lei, mo.lei < 10 ? 1 : 0) + ' lei', num(mo.m3, 1) + ' m³'],
+      ['Month estimate', canProject ? '≈ ' + num(mo.lei + avgLei * remaining, 0) + ' lei' : '–', canProject ? '≈ ' + num(mo.m3 + avgM3 * remaining, 0) + ' m³' : 'after 3 full days'],
+      ['Burner so far', hm(mo.min), ''],
+      ['Typical day', fullDays ? hm(avgMin) : '–', fullDays ? num(avgM3, 2) + ' m³' : 'after 1 full day'],
+    ].map(function (x) { return '<div><div class="l">' + x[0] + '</div><div class="v">' + x[1] + '</div><div class="d">' + x[2] + '</div></div>'; }).join('');
+    el('monthBar').style.width = Math.round(Math.min(1, elapsed / dim) * 100) + '%';
+    el('forecastNote').textContent = canProject
+      ? 'Estimate = so far + your average full day (' + fullDays + ' logged) × days left. Heating only; stove and hot water not included.'
+      : 'The month estimate appears once 3 full days are logged. Heating only; stove and hot water not included.';
+
+    drawCharts(now);
+
+    // months table
+    var months = {};
+    all.forEach(function (r) {
+      var k = String(r[0]).slice(0, 7), x = months[k] || (months[k] = { min: 0, m3: 0, lei: 0, kwh: 0, hdd: 0, outs: [], n: 0 });
+      x.min += Number(r[1]) || 0; x.m3 += Number(r[9]) || 0; x.lei += Number(r[10]) || 0; x.kwh += Number(r[8]) || 0; x.hdd += Number(r[7]) || 0; x.n++;
+      if (r[6] !== '') x.outs.push(Number(r[6]));
+    });
+    var mk = Object.keys(months).sort().reverse();
+    el('months').innerHTML = '<tr><th>Month</th><th>Days</th><th>Burner</th><th>m³</th><th>lei</th><th>Outside</th></tr>' +
+      (mk.length ? mk.map(function (k) {
+        var x = months[k], name = new Date(k + '-01T12:00:00').toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+        var o = x.outs.length ? x.outs.reduce(function (a, b) { return a + b; }) / x.outs.length : '';
+        return '<tr><td>' + name + '</td><td>' + x.n + '</td><td>' + hm(x.min) + '</td><td>' + num(x.m3, 1) + '</td><td>' + num(x.lei, 0) + '</td><td>' + (o === '' ? '–' : num(o) + '°') + '</td></tr>';
+      }).join('') : '<tr><td colspan="6">No data yet</td></tr>');
+
+    // meter
+    var M = D.meter || [];
+    el('meter').innerHTML = '<tr><th>Period</th><th>Meter</th><th>Burner</th><th>m³/h</th></tr>' +
+      (M.length ? M.slice().reverse().map(function (r) {
+        var f = function (d) { return dShort(d) + ' ' + tShort(d); };
+        var rate = r.heatMin > 2 ? r.m3 / (r.heatMin / 60) : '';
+        return '<tr><td>' + f(dateOf(r.from)) + ' → ' + tShort(dateOf(r.to)) + (r.note ? '<br><span class="sub">' + esc(r.note) + '</span>' : '') + '</td><td>' + num(r.m3, 3) + ' m³</td><td>' + hm(r.heatMin) + '</td><td>' + (rate === '' ? '–' : num(rate, 2)) + '</td></tr>';
+      }).join('') : '<tr><td colspan="4">Add two readings to compare the meter with the logged burner time.</td></tr>');
+
+    el('assumptions').textContent = 'Estimates use ' + num(S.kwhPerHour, 1) + ' kWh per burner hour' + (S.measured ? ' (measured with your meter)' : ' (assumed)') +
+      ', ' + num(S.kwhPerM3, 3) + ' kWh/m³ and ' + num(S.price, 2) + ' lei/kWh incl. VAT. Outside temperature: Open-Meteo, Cluj-Napoca.';
+    el('tip-eff').textContent = 'A degree-day is one degree of cold below ' + S.hddBase + '°C for one day. This chart shows how much gas energy each degree of cold costs you. Lower is better; it should stay flat if nothing changes in the house.';
+  }
+
+  function base(extra) {
+    var o = { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false } } };
+    for (var k in extra) o[k] = extra[k];
+    return o;
+  }
+  function draw(id, conf, enough) {
+    var canvas = el(id), empty = canvas.parentNode.querySelector('.empty');
+    if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+    empty.style.display = enough ? 'none' : 'flex';
+    if (enough) charts[id] = new Chart(canvas, conf);
+  }
+
+  function drawCharts(now) {
+    var all = DATA.days || [], S = DATA.settings;
+    var days = range ? all.slice(-range) : all;
+    var labels = days.map(function (r) { return dShort(dateOf(r[0])); });
+    var xt = { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 7 } };
+    draw('cHours', {
+      type: 'bar',
+      data: { labels: labels, datasets: [
+        { type: 'bar', data: days.map(function (r) { return r[2]; }), backgroundColor: css('--heat'), borderRadius: 4, yAxisID: 'y', order: 2, maxBarThickness: 40 },
+        { type: 'line', data: days.map(function (r) { return r[6] === '' ? null : r[6]; }), borderColor: css('--out'), backgroundColor: css('--out'), pointRadius: 2, borderWidth: 2, tension: .3, yAxisID: 'y1', order: 1 },
+      ]},
+      options: base({ scales: { y: { beginAtZero: true, title: { display: true, text: 'h' } }, y1: { position: 'right', grid: { display: false }, title: { display: true, text: '°C' } }, x: xt } }),
+    }, days.length >= 1);
+    draw('cGas', { type: 'bar', data: { labels: labels, datasets: [{ data: days.map(function (r) { return r[9]; }), backgroundColor: css('--cool'), borderRadius: 4, maxBarThickness: 40 }] },
+      options: base({ scales: { y: { beginAtZero: true }, x: xt } }) }, days.length >= 1);
+
+    var rec = DATA.recent || [];
+    var tl = rec.map(function (r) { var d = dateOf(r[0]); return d.toLocaleDateString('en-GB', { weekday: 'short' }) + ' ' + tShort(d); });
+    var vals = [];
+    rec.forEach(function (r) { [r[1], r[2], r[4]].forEach(function (v) { if (v !== '' && v !== null) vals.push(Number(v)); }); });
+    var top = vals.length ? Math.ceil(Math.max.apply(null, vals) + 1) : 25, bottom = vals.length ? Math.floor(Math.min.apply(null, vals) - 1) : 0;
+    draw('cTemp', {
+      type: 'line',
+      data: { labels: tl, datasets: [
+        { data: rec.map(function (r) { return Number(r[3]) === 1 ? top : null; }), backgroundColor: css('--heat') + '33', borderWidth: 0, fill: 'origin', pointRadius: 0, stepped: true },
+        { data: rec.map(function (r) { return r[1] === '' ? null : r[1]; }), borderColor: css('--ink'), pointRadius: 0, borderWidth: 2, tension: .3 },
+        { data: rec.map(function (r) { return r[2] === '' ? null : r[2]; }), borderColor: css('--heat'), borderDash: [4, 4], pointRadius: 0, borderWidth: 1.5, stepped: true },
+        { data: rec.map(function (r) { return r[4] === '' ? null : r[4]; }), borderColor: css('--out'), pointRadius: 0, borderWidth: 1.5, tension: .3, spanGaps: true },
+      ]},
+      options: base({ scales: { y: { min: bottom, max: top }, x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 5 } } } }),
+    }, rec.length >= 2);
+
+    var withOut = days.filter(function (r) { return r[6] !== '' && r[8] !== ''; });
+    draw('cScatter', {
+      type: 'scatter',
+      data: { datasets: [{ data: withOut.map(function (r) { return { x: r[6], y: r[8], d: r[0] }; }), backgroundColor: css('--heat'), pointRadius: 5 }] },
+      options: base({ interaction: { mode: 'nearest', intersect: true },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return dShort(dateOf(c.raw.d)) + ': ' + num(c.raw.y) + ' kWh at ' + num(c.raw.x) + '°C'; } } } },
+        scales: { x: { title: { display: true, text: 'Avg outside °C' } }, y: { beginAtZero: true, title: { display: true, text: 'kWh' } } } }),
+    }, withOut.length >= 3);
+    var eff = days.filter(function (r) { return r[11] !== '' && Number(r[7]) >= 3; });
+    draw('cEff', { type: 'line', data: { labels: eff.map(function (r) { return dShort(dateOf(r[0])); }),
+      datasets: [{ data: eff.map(function (r) { return r[11]; }), borderColor: css('--heat'), backgroundColor: css('--heat'), pointRadius: 3, tension: .3 }] },
+      options: base({ scales: { y: { beginAtZero: true, title: { display: true, text: 'kWh per °day' } }, x: xt } }) }, eff.length >= 3);
+  }
+
+  // ---------------- controls ----------------
+  var bound = false;
+  function bindControls() {
+  if (bound) return; bound = true;
+  el('range').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) setRange(Number(b.dataset.d), true); });
+  el('refresh').addEventListener('click', fetchData);
+  document.querySelectorAll('.info').forEach(function (b) {
+    b.addEventListener('click', function () { var t = el('tip-' + b.dataset.tip); t.hidden = !t.hidden; b.textContent = t.hidden ? 'what is this?' : 'hide'; });
+  });
+  el('meterForm').addEventListener('submit', submitMeter);
+  }
+  function setRange(d, redraw) {
+    range = d;
+    document.querySelectorAll('#range button').forEach(function (b) { b.setAttribute('aria-pressed', String(Number(b.dataset.d) === d)); });
+    store(RANGE_NAME, String(d));
+    if (redraw && DATA) drawCharts();
+  }
+  function submitMeter(e) {
+    e.preventDefault();
+    var v = el('meterIn').value.trim().replace(',', '.'), msg = el('meterMsg');
+    if (!/^\d+(\.\d+)?$/.test(v)) { msg.textContent = 'Type the number from the meter, e.g. 3284,089.'; return; }
+    el('meterBtn').disabled = true; msg.textContent = 'Saving…';
+    api({ action: 'meter', value: v }).then(function (res) {
+      if (!res.ok) throw new Error(res.error);
+      DATA = res.data; store(DATA_NAME, JSON.stringify(DATA)); render(false);
+      el('meterIn').value = ''; msg.textContent = 'Saved ' + num(Number(v), 3) + ' m³.';
+    }).catch(function (err) {
+      msg.textContent = 'Not saved: ' + (err && err.message && err.message !== 'failed' ? err.message : 'couldn’t reach your Google script.') + ' Your number is still in the box.';
+    }).then(function () { el('meterBtn').disabled = false; });
+  }
+})();
 </script>
 </body>
 </html>
