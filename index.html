@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Gas">
-<meta name="app-version" content="20261123202425">
+<meta name="app-version" content="20261125130025">
 <meta name="theme-color" content="#0B0D12">
 <meta name="color-scheme" content="dark">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD" crossorigin="anonymous"></script>
 <style>
   :root {
     --bg:#0B0D12;
@@ -348,7 +348,7 @@
       </div>
 
       <div class="card sk" id="todayCard">
-        <div class="eyebrow">Boiler today</div>
+        <div class="eyebrow">Heater today</div>
         <div class="metric">
           <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 22c4 0 7-2.8 7-7 0-4.8-4.2-7.6-5.4-12-2.6 2.4-3.4 5-3.1 7.4C9.6 9 8.6 8 8 6.6 6.2 8.8 5 11.4 5 15c0 4.2 3 7 7 7z"/></svg></div>
           <div class="hero-num num" id="todayRun" data-v="">0 min</div>
@@ -382,7 +382,7 @@
       <div class="card">
         <div class="eyebrow">Last 48 hours</div>
         <div class="chart"><canvas id="cTemp"></canvas><div class="empty">No readings yet.</div></div>
-        <div class="legend"><span><i style="background:#F3F5F9"></i>Room</span><span><i style="background:#FF9F43"></i>Target</span><span><i style="background:#60A5FA"></i>Outside</span><span><i style="background:rgba(255,94,26,.35)"></i>Boiler on</span></div>
+        <div class="legend"><span><i style="background:#F3F5F9"></i>Room</span><span><i style="background:#FF9F43"></i>Target</span><span><i style="background:#60A5FA"></i>Outside</span><span><i style="background:rgba(255,94,26,.35)"></i>Heater on</span></div>
       </div>
     </section>
 
@@ -393,7 +393,7 @@
         <button data-d="7" aria-pressed="true">7 days</button><button data-d="30" aria-pressed="false">30 days</button><button data-d="90" aria-pressed="false">90 days</button><button data-d="0" aria-pressed="false">All</button>
       </div>
       <div class="card">
-        <div class="eyebrow"><span><span class="ic" style="background:rgba(255,122,46,.16);color:#FF9F43"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c3 4 6 6.6 6 10.5A6 6 0 0 1 6 13.5C6 9.6 9 7 12 3z"/></svg></span>Boiler hours per day</span></div>
+        <div class="eyebrow"><span><span class="ic" style="background:rgba(255,122,46,.16);color:#FF9F43"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c3 4 6 6.6 6 10.5A6 6 0 0 1 6 13.5C6 9.6 9 7 12 3z"/></svg></span>Heater hours per day</span></div>
         <div class="chart"><canvas id="cHours"></canvas><div class="empty">Shows up after the first full day.</div></div>
         <div class="legend"><span><i style="background:linear-gradient(#FF9F43,#FF5E1A)"></i>Hours</span><span><i style="background:#60A5FA"></i>Avg outside °C</span></div>
       </div>
@@ -402,7 +402,7 @@
         <div class="chart"><canvas id="cGas"></canvas><div class="empty">Shows up after the first full day.</div></div>
       </div>
       <div class="card">
-        <div class="eyebrow">When the boiler runs <span class="small mono" id="hmDays"></span></div>
+        <div class="eyebrow">When the heater runs <span class="small mono" id="hmDays"></span></div>
         <div class="hm" id="hm"></div>
         <div class="hm-scale"><span>less</span><span class="g"></span><span>more</span><span id="hmPick"></span></div>
       </div>
@@ -436,6 +436,7 @@
             </div>
             <button class="btn" id="meterBtn" type="submit">Save</button>
           </div>
+          <label class="small" style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer"><input type="checkbox" id="meterTest" style="accent-color:#FF7A2E;width:18px;height:18px;margin:0"> Heater-only test (nothing else used gas since the last reading)</label>
           <div class="small" id="meterMsg" role="status" style="margin-top:10px">Black digits on the left, the red ones after the comma on the right.</div>
         </form>
       </div>
@@ -447,7 +448,7 @@
         <summary>How the estimate works <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></summary>
         <div class="acc-body">
           <p class="sub" id="assumptions" style="margin:0"></p>
-          <p class="small">Meter m³ also includes the stove and hot water, so over longer periods it reads higher than the heating estimate. For a clean boiler test, use nothing else on gas between two readings.</p>
+          <p class="small">Meter m³ also includes the stove and hot water, so over longer periods it reads higher than the heating estimate. For a clean heater test, use nothing else on gas between two readings.</p>
         </div>
       </details>
     </section>
@@ -464,7 +465,9 @@
 <script>
 (function () {
   'use strict';
-  var API = 'https://script.google.com/macros/s/AKfycbzsMgWjkXWzbay8kxhFHKT-rIX46-usNDv8eZwpM2qNbwtBiZMZypx8FmUl5Dnqdce3/exec';
+  var LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname); // local preview only
+  var API = LOCAL ? '/api' : 'https://script.google.com/macros/s/AKfycbzsMgWjkXWzbay8kxhFHKT-rIX46-usNDv8eZwpM2qNbwtBiZMZypx8FmUl5Dnqdce3/exec';
+  var TZ = 'Europe/Bucharest', FULL_DAY_MIN = 1296; // a day counts as complete when ≥ 90% of it was logged
   var KEY_NAME = 'gas-dashboard:key', DATA_NAME = 'gas-dashboard:data', RANGE_NAME = 'gas-dashboard:range', VIEW_NAME = 'gas-dashboard:view';
   var STALE_MIN = 15, SAVE_PER_DEGREE = 0.06, UPDATE_NAME = 'gas-dashboard:update', BASELINE_DAYS = 14;
   var APP_VERSION = (document.querySelector('meta[name="app-version"]') || {}).content || '';
@@ -481,8 +484,13 @@
   var standalone = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
 
   // ---- key handling: the key arrives once in the #k=… fragment (never sent to any server) ----
+  var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   var m = /[#&]k=([A-Za-z0-9]{32,})/.exec(location.hash);
-  if (m) { store(KEY_NAME, m[1]); if (standalone) history.replaceState(null, '', location.pathname); }
+  if (m) {
+    store(KEY_NAME, m[1]);
+    // only Safari on iPhone needs the install screen; everywhere else, drop the key from the address bar at once
+    if (standalone || !isIOS) { history.replaceState(null, '', location.pathname); if (!standalone) m = null; }
+  }
   var KEY = load(KEY_NAME);
 
   function showSetup(mode) {
@@ -495,7 +503,8 @@
     e.preventDefault();
     var v = el('pasteIn').value.replace(/^.*#k=/, '').trim();
     if (!/^[A-Za-z0-9]{32,}$/.test(v)) { el('pasteMsg').textContent = 'That doesn’t look like the key. Copy it again from Safari.'; return; }
-    store(KEY_NAME, v); KEY = v; document.body.classList.remove('setup'); start();
+    store(KEY_NAME, v); KEY = v; el('pasteIn').value = ''; document.body.classList.remove('setup');
+    if (started) fetchData(true); else start(); // after a key change the app is already running: just reload the data
   });
   el('copyKey').addEventListener('click', function () {
     var k = load(KEY_NAME) || '';
@@ -510,10 +519,14 @@
   function num(n, d) { if (n === '' || n === null || n === undefined || isNaN(n)) return '–'; d = d === undefined ? 1 : d; return Number(n).toLocaleString('ro-RO', { minimumFractionDigits: d, maximumFractionDigits: d }); }
   function lei(n) { return num(n, n < 10 ? 1 : 0) + ' lei'; }
   function hm(min) { min = Math.round(min); var h = Math.floor(min / 60), mm = min % 60; return h >= 10 ? h + ' h' : h ? h + ' h ' + (mm < 10 ? '0' : '') + mm + ' m' : mm + ' min'; }
-  function dateOf(s) { return new Date(String(s).replace(' ', 'T')); }
+  function dateOf(s) { s = String(s); return new Date(/^\d{4}-\d{2}-\d{2}$/.test(s) ? s + 'T12:00:00' : s.replace(' ', 'T')); } // day keys at noon: never shift a day
+  function nv(v) { return v === '' || v === null || v === undefined ? NaN : Number(v); } // '' is "no value", never 0
+  function full(r) { return r[12] === undefined || r[12] === '' || Number(r[12]) >= FULL_DAY_MIN; }
+  function coverage(r) { return r[12] === undefined || r[12] === '' ? 1 : Math.min(1, Number(r[12]) / 1440); }
+  function meterStr(v) { var p = Number(v).toFixed(3).split('.'); return ('00000' + p[0]).slice(-5) + ',' + p[1]; }
   function keyOf(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
-  function dShort(d) { return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); }
-  function tShort(d) { return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); }
+  function dShort(d) { return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: TZ }); }
+  function tShort(d) { return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: TZ }); }
   function sum(rows, i) { return rows.reduce(function (a, r) { return a + (Number(r[i]) || 0); }, 0); }
   function avg(arr) { return arr.length ? arr.reduce(function (a, b) { return a + b; }, 0) / arr.length : NaN; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -528,11 +541,12 @@
     node.dataset.v = String(value);
     var put = function (v) { if (html) node.innerHTML = fmt(v); else node.textContent = fmt(v); };
     if (REDUCED || !isFinite(prev) || !isFinite(value) || prev === value) { put(value); return; }
+    if (node._raf) cancelAnimationFrame(node._raf); // a newer value replaces a tween still running
     var t0 = performance.now(), dur = 650;
     (function step(t) {
       var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
       put(prev + (value - prev) * e);
-      if (k < 1) requestAnimationFrame(step);
+      node._raf = k < 1 ? requestAnimationFrame(step) : 0;
     })(t0);
   }
   function stagger(v) {
@@ -566,7 +580,7 @@
 
   // ---- automatic update: compare our version tag with the one on GitHub, reload through a fresh address if newer ----
   function checkUpdate() {
-    if (!APP_VERSION) return;
+    if (!APP_VERSION || LOCAL) return;
     fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' })
       .then(function (r) { return r.ok ? r.text() : ''; })
       .then(function (html) {
@@ -586,21 +600,34 @@
     var ctl = window.AbortController ? new AbortController() : null;
     var timer = ctl ? setTimeout(function () { ctl.abort(); }, 20000) : null; // never spin forever
     return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow', cache: 'no-store', signal: ctl ? ctl.signal : undefined })
-      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(function (r) {
+        if (!r.ok) throw apiError('http', 'HTTP ' + r.status);
+        return r.text().then(function (t) { try { return JSON.parse(t); } catch (e) { throw apiError('page'); } });
+      }, function (e) { throw apiError(e && e.name === 'AbortError' ? 'timeout' : navigator.onLine === false ? 'offline' : 'network'); })
       .then(function (j) { clearTimeout(timer); return j; }, function (e) { clearTimeout(timer); throw e; });
+  }
+  function apiError(kind, msg) { var e = new Error(msg || kind); e.kind = kind; return e; }
+  function why(e) {
+    var k = e && e.kind;
+    return k === 'timeout' ? 'Your Google script took too long to answer' :
+      k === 'offline' ? 'This phone is offline' :
+      k === 'network' ? 'Couldn’t reach Google' :
+      k === 'page' ? 'Google answered with a page instead of data (often a temporary limit)' :
+      k === 'http' ? 'Google answered with an error (' + esc(e.message) + ')' :
+      'The script reported: ' + esc(e && e.message || 'unknown error');
   }
 
   function fetchData(manual) {
     if (busy) return; busy = true;
     var b = el('refresh'); b.classList.remove('turn'); b.classList.add('spin'); b.disabled = true;
     api({ action: 'data' }).then(function (res) {
-      if (!res.ok && res.error === 'unauthorized') { store(KEY_NAME, null); store(DATA_NAME, null); showSetup('need'); return; }
-      if (!res.ok) throw new Error(res.error || 'failed');
+      if (!res.ok && res.error === 'unauthorized') { store(KEY_NAME, null); store(DATA_NAME, null); DATA = null; showSetup('need'); return; }
+      if (!res.ok) throw apiError('script', res.error || 'failed');
       DATA = res.data; store(DATA_NAME, JSON.stringify(DATA)); el('err').style.display = 'none'; render(false);
       if (manual === true) shimmer();
-    }).catch(function () {
+    }).catch(function (x) {
       var e = el('err');
-      e.innerHTML = 'Your Google script didn’t answer in time' + (DATA ? '. Showing data from ' + esc(tShort(dateOf(DATA.now))) + '.' : '.') + '<br><button class="btn ghost" type="button">Try again</button>';
+      e.innerHTML = why(x) + (DATA ? '. Showing data from ' + esc(tShort(dateOf(DATA.now))) + '.' : '.') + '<br><button class="btn ghost" type="button">Try again</button>';
       e.querySelector('button').onclick = function () { fetchData(true); }; e.style.display = 'block';
     }).then(function () {
       busy = false; b.classList.remove('spin'); b.disabled = false;
@@ -615,14 +642,16 @@
     ['heroCard', 'todayCard', 'monthCard'].forEach(function (id) { el(id).classList.remove('sk'); });
     var L = D.live || {};
     var ageMin = L.time ? (now - dateOf(L.time)) / 60000 : Infinity;
-    var stale = ageMin > STALE_MIN;
+    var stale = ageMin > STALE_MIN, offline = !!L.offline;
     el('updated').textContent = L.time ? 'Updated ' + ago(ageMin) + (fromCache ? ' · refreshing' : '') : 'No readings yet';
     var st = el('stale');
-    if (stale && L.time) { st.textContent = 'No new readings since ' + tShort(dateOf(L.time)) + '. Logging may have stopped: check the Tuya connection or the sheet’s Thermostat menu.'; st.style.display = 'block'; }
+    if (offline) { st.textContent = 'The thermostat is offline (no Wi-Fi or power). Heater time isn’t counted until it reconnects.'; st.style.display = 'block'; }
+    else if (stale && L.time) { st.textContent = 'No new readings since ' + tShort(dateOf(L.time)) + '. ' + (D.lastErr ? 'Last problem: ' + D.lastErr.msg : 'Logging may have stopped: check the Tuya connection or the sheet’s Thermostat menu.'); st.style.display = 'block'; }
+    else if (D.lastErr) { st.textContent = 'Logging hiccup at ' + tShort(dateOf(D.lastErr.at)) + ': ' + D.lastErr.msg; st.style.display = 'block'; }
     else st.style.display = 'none';
 
     // ---- atmosphere ----
-    var heating = L.heating && !stale;
+    var heating = L.heating && !stale && !offline;
     var room = Number(L.room), target = Number(L.set);
     document.body.classList.toggle('s-heating', !!heating);
     document.body.classList.toggle('s-idle', !heating);
@@ -632,7 +661,7 @@
     // ---- hero ----
     var pill = el('pill');
     pill.className = 'pill' + (L.window ? ' win' : heating ? ' on' : '') + (stale ? ' stale' : '');
-    el('pillText').textContent = stale ? 'Status unknown' : L.window ? 'Window open' : heating ? 'Heating' : (L.power === false ? 'Thermostat off' : 'Idle');
+    el('pillText').textContent = offline ? 'Thermostat offline' : stale ? 'Status unknown' : L.window ? 'Window open' : heating ? 'Heating' : (L.power === false ? 'Thermostat off' : 'Idle');
     el('sinceTxt').textContent = L.since && !stale ? 'since ' + tShort(dateOf(L.since)) : '';
     if (L.room === undefined || L.room === '') el('tRoom').innerHTML = '–';
     else roll(el('tRoom'), room, function (v) { return num(v) + '<sup>°C</sup>'; }, true);
@@ -641,18 +670,19 @@
     setGauge(room, target);
 
     var story;
-    if (stale) story = 'The thermostat hasn’t reported for a while, so these numbers may be out of date.';
+    if (offline) story = 'The thermostat isn’t reaching Tuya right now, so heater time isn’t being counted.';
+    else if (stale) story = 'The thermostat hasn’t reported for a while, so these numbers may be out of date.';
     else if (L.window) story = 'The thermostat thinks a window is open and has paused heating.';
-    else if (heating) story = 'The boiler has been running' + (L.since ? ' since ' + tShort(dateOf(L.since)) : '') + ' to reach ' + num(target) + '°.';
-    else if (isFinite(room) && isFinite(target) && room >= target) story = 'The room is at or above the target, so the boiler is resting.';
-    else story = 'The boiler is off right now.';
+    else if (heating) story = 'The heater has been running' + (L.since ? ' since ' + tShort(dateOf(L.since)) : '') + ' to reach ' + num(target) + '°.';
+    else if (isFinite(room) && isFinite(target) && room >= target) story = 'The room is at or above the target, so the heater is resting.';
+    else story = 'The heater is off right now.';
     el('story').textContent = story;
 
     // ---- today / week / month ----
-    var todayKey = keyOf(now), monthKey = todayKey.slice(0, 7);
-    var monday = new Date(now); monday.setHours(0, 0, 0, 0); monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+    var todayKey = String(D.now).slice(0, 10), monthKey = todayKey.slice(0, 7); // the date in Romania, whatever the phone's time zone
+    var monday = dateOf(todayKey); monday.setHours(0, 0, 0, 0); monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
     var liveMin = heating ? Math.min(S.maxGapMin || 15, Math.max(0, ageMin)) : 0;
-    function bucket(f) { var r = all.filter(f); return { min: sum(r, 1), m3: sum(r, 9), lei: sum(r, 10), n: r.length }; }
+    function bucket(f) { var r = all.filter(f); return { min: sum(r, 1), m3: sum(r, 9), lei: sum(r, 10), n: r.length, cov: r.reduce(function (a, x) { return a + coverage(x); }, 0) }; }
     var t = bucket(function (r) { return r[0] === todayKey; });
     var w = bucket(function (r) { return r[0] >= keyOf(monday); });
     var mo = bucket(function (r) { return String(r[0]).slice(0, 7) === monthKey; });
@@ -667,27 +697,28 @@
       tile('Per hour', lei(S.kwhPerHour * S.price), num(S.kwhPerHour / S.kwhPerM3, 2) + ' m³', 'c-gas');
 
     // ---- last 7 full days vs the 7 before ----
-    var full = all.filter(function (r) { return r[0] !== todayKey; });
-    var cut = new Date(now); cut.setHours(0, 0, 0, 0); cut.setDate(cut.getDate() - 7); var cutKey = keyOf(cut);
+    var full_ = all.filter(function (r) { return r[0] !== todayKey && full(r); }); // complete days only
+    var cut = dateOf(todayKey); cut.setHours(0, 0, 0, 0); cut.setDate(cut.getDate() - 7); var cutKey = keyOf(cut);
     var cut2 = new Date(cut); cut2.setDate(cut2.getDate() - 7); var cut2Key = keyOf(cut2);
-    var last7 = full.filter(function (r) { return r[0] >= cutKey; });
-    var prev7 = full.filter(function (r) { return r[0] >= cut2Key && r[0] < cutKey; });
+    var last7 = full_.filter(function (r) { return r[0] >= cutKey; });
+    var prev7 = full_.filter(function (r) { return r[0] >= cut2Key && r[0] < cutKey; });
     var cmp = el('compare');
     if (last7.length >= 3 && prev7.length >= 3) {
       var a = sum(last7, 9) / last7.length, b = sum(prev7, 9) / prev7.length;
       var pct = b > 0 ? (a - b) / b * 100 : 0;
-      var oa = avg(last7.map(function (r) { return Number(r[6]); }).filter(isFinite)), ob = avg(prev7.map(function (r) { return Number(r[6]); }).filter(isFinite));
+      var oa = avg(last7.map(function (r) { return nv(r[6]); }).filter(isFinite)), ob = avg(prev7.map(function (r) { return nv(r[6]); }).filter(isFinite));
       var ea = sum(last7, 8) / Math.max(1e-9, sum(last7, 7)), eb = sum(prev7, 8) / Math.max(1e-9, sum(prev7, 7));
+      var adjOk = sum(last7, 7) >= 3 * last7.length && sum(prev7, 7) >= 3 * prev7.length && eb > 0; // only on genuinely cold weeks
       var cls = Math.abs(pct) < 3 ? 'flat' : pct > 0 ? 'up' : 'down';
       var why = '';
       if (isFinite(oa) && isFinite(ob)) {
         var dT = oa - ob;
-        why = Math.abs(dT) < 0.5 ? 'The weather was about the same.' : (dT < 0 ? 'It was ' + num(-dT) + '° colder outside on average' : 'It was ' + num(dT) + '° warmer outside on average') + (sum(last7, 7) > 3 && sum(prev7, 7) > 3 ? ', and adjusted for that, you used ' + (Math.abs((ea - eb) / eb * 100) < 3 ? 'about the same' : num(Math.abs((ea - eb) / eb * 100), 0) + '% ' + (ea > eb ? 'more' : 'less')) + '.' : '.');
+        why = Math.abs(dT) < 0.5 ? 'The weather was about the same.' : (dT < 0 ? 'It was ' + num(-dT) + '° colder outside on average' : 'It was ' + num(dT) + '° warmer outside on average') + (adjOk ? ', and adjusted for that, you used ' + (Math.abs((ea - eb) / eb * 100) < 3 ? 'about the same' : num(Math.abs((ea - eb) / eb * 100), 0) + '% ' + (ea > eb ? 'more' : 'less')) + '.' : '.');
       }
       cmp.innerHTML = '<div class="delta ' + cls + ' num">' + (cls === 'flat' ? '' : cls === 'up' ? ARROW_UP : ARROW_DOWN) + (cls === 'flat' ? 'About the same' : num(Math.abs(pct), 0) + '% ' + (pct > 0 ? 'more gas' : 'less gas')) + '</div>' +
         '<div class="stat-pills"><span class="sp gas">' + num(a, 2) + ' m³/day</span><span class="sp" style="color:var(--mute);border-color:var(--edge)">was ' + num(b, 2) + '</span></div>' + (why ? '<p class="small" style="margin:10px 0 0">' + why + '</p>' : '');
     } else {
-      var have = Math.min(full.length, BASELINE_DAYS);
+      var have = Math.min(full_.length, BASELINE_DAYS);
       cmp.innerHTML = '<div class="baseline"><div class="bl-top"><span>Collecting baseline</span><b>Day ' + Math.max(1, have) + ' of ' + BASELINE_DAYS + '</b></div>' +
         '<div class="track-bar"><i style="width:0"></i></div><p class="small" style="margin:10px 0 0">After two weeks this compares your last 7 days with the 7 before, weather included.</p></div>';
       var bar = cmp.querySelector('.track-bar i');
@@ -696,11 +727,13 @@
 
     // ---- month ----
     var dim = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    var elapsed = (now.getDate() - 1) + (now.getHours() * 60 + now.getMinutes()) / 1440;
-    var mFull = full.filter(function (r) { return String(r[0]).slice(0, 7) === monthKey; });
+    var hhmm = String(D.now).slice(11, 16), elapsed = Number(todayKey.slice(8, 10)) - 1 + (Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5))) / 1440;
+    var mFull = full_.filter(function (r) { return String(r[0]).slice(0, 7) === monthKey; });
     var avgLei = mFull.length ? sum(mFull, 10) / mFull.length : 0, avgM3 = mFull.length ? sum(mFull, 9) / mFull.length : 0;
-    var canProject = mFull.length >= 3, estLei = mo.lei + avgLei * (dim - elapsed), estM3 = mo.m3 + avgM3 * (dim - elapsed);
-    el('monthTitle').textContent = now.toLocaleDateString('en-GB', { month: 'long' });
+    // logged so far + an average day for every day (or part of a day) not logged yet, incl. days before logging started
+    var notLogged = Math.max(0, dim - mo.cov);
+    var canProject = mFull.length >= 3, estLei = mo.lei + avgLei * notLogged, estM3 = mo.m3 + avgM3 * notLogged;
+    el('monthTitle').textContent = dateOf(todayKey).toLocaleDateString('en-GB', { month: 'long' }) + (canProject && Math.round(mo.cov) < Math.floor(elapsed) ? ' · from ' + Math.round(mo.cov) + ' logged days' : '');
     el('monthDays').textContent = Math.max(0, Math.ceil(dim - elapsed)) + ' days left';
     el('forecast').innerHTML =
       tile('So far', lei(mo.lei), num(mo.m3, 1) + ' m³', 'c-gas', 'c-amber') +
@@ -764,18 +797,19 @@
     var rec = DATA.recent || [];
     var tl = rec.map(function (r) { var d = dateOf(r[0]); return d.toLocaleDateString('en-GB', { weekday: 'short' }) + ' ' + tShort(d); });
     var vals = [];
-    rec.forEach(function (r) { [r[1], r[2], r[4]].forEach(function (v) { if (v !== '' && v !== null) vals.push(Number(v)); }); });
-    var top = vals.length ? Math.ceil(Math.max.apply(null, vals) + 1) : 25, bottom = vals.length ? Math.floor(Math.min.apply(null, vals) - 1) : 0;
+    rec.forEach(function (r) { [r[1], r[2]].forEach(function (v) { if (isFinite(nv(v))) vals.push(nv(v)); }); });
+    var top = vals.length ? Math.ceil(Math.max.apply(null, vals) + 0.5) : 23, bottom = vals.length ? Math.floor(Math.min.apply(null, vals) - 0.5) : 18;
     draw('cTemp', {
       type: 'line',
       data: { labels: tl, datasets: [
-        { label: 'Boiler on', data: rec.map(function (r) { return Number(r[3]) === 1 ? top : null; }), backgroundColor: vgrad('rgba(255,94,26,.32)', 'rgba(255,94,26,.04)'), borderWidth: 0, fill: 'origin', pointRadius: 0, stepped: true },
-        { label: 'Room', data: rec.map(function (r) { return r[1] === '' ? null : r[1]; }), borderColor: C.ink, pointRadius: 0, borderWidth: 2.2, tension: .35 },
-        { label: 'Target', data: rec.map(function (r) { return r[2] === '' ? null : r[2]; }), borderColor: C.e2, borderDash: [5, 5], pointRadius: 0, borderWidth: 1.6, stepped: true },
-        { label: 'Outside', data: rec.map(function (r) { return r[4] === '' ? null : r[4]; }), borderColor: C.frost, pointRadius: 0, borderWidth: 1.8, tension: .35, spanGaps: true },
+        { label: 'Heater on', data: rec.map(function (r) { return Number(r[3]) === 1 ? top : bottom; }), backgroundColor: vgrad('rgba(255,94,26,.32)', 'rgba(255,94,26,.04)'), borderWidth: 0, fill: 'start', pointRadius: 0, stepped: true },
+        { label: 'Room', data: rec.map(function (r) { return isFinite(nv(r[1])) ? nv(r[1]) : null; }), borderColor: C.ink, pointRadius: 0, borderWidth: 2.2, tension: .35 },
+        { label: 'Target', data: rec.map(function (r) { return isFinite(nv(r[2])) ? nv(r[2]) : null; }), borderColor: C.e2, borderDash: [5, 5], pointRadius: 0, borderWidth: 1.6, stepped: true },
+        { label: 'Outside', data: rec.map(function (r) { return isFinite(nv(r[4])) ? nv(r[4]) : null; }), borderColor: C.frost, pointRadius: 0, borderWidth: 1.8, tension: .35, spanGaps: true, yAxisID: 'y1' },
       ]},
       options: base({ plugins: { legend: { display: false }, tooltip: Object.assign({}, TOOLTIP, { filter: function (i) { return i.datasetIndex > 0; }, callbacks: { label: function (c) { return c.dataset.label + '  ' + num(c.raw) + '°'; } } }) },
-        scales: { y: { min: bottom, max: top, border: { display: false }, grid: { color: C.hair, drawTicks: false }, ticks: { maxTicksLimit: 4, padding: 8, callback: function (v) { return v + '°'; } } }, x: Object.assign({}, XAX, { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 4, padding: 6 } }) } }),
+        scales: { y: { min: bottom, max: top, border: { display: false }, grid: { color: C.hair, drawTicks: false }, ticks: { maxTicksLimit: 4, padding: 8, callback: function (v) { return v + '°'; } } },
+          y1: { position: 'right', border: { display: false }, grid: { display: false }, ticks: { maxTicksLimit: 4, color: C.frost, callback: function (v) { return v + '°'; } } }, x: Object.assign({}, XAX, { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 3, padding: 6 } }) } }),
     }, rec.length >= 2);
   }
 
@@ -784,22 +818,23 @@
     var all = DATA.days || [];
     var days = range ? all.slice(-range) : all;
     var labels = days.map(function (r) { return dShort(dateOf(r[0])); });
+    function partial(solid, faint) { return function (c) { var r = days[c.dataIndex]; return r && !full(r) ? faint : solid(c); }; } // partly logged days look faint
     draw('cHours', {
       type: 'bar',
       data: { labels: labels, datasets: [
-        { type: 'bar', label: 'Boiler', data: days.map(function (r) { return r[2]; }), backgroundColor: vgrad('#FFB066', 'rgba(255,94,26,.45)'), borderRadius: { topLeft: 8, topRight: 8 }, borderSkipped: false, yAxisID: 'y', order: 2, maxBarThickness: 28 },
+        { type: 'bar', label: 'Heater', data: days.map(function (r) { return r[2]; }), backgroundColor: partial(vgrad('#FFB066', 'rgba(255,94,26,.45)'), 'rgba(255,159,67,.22)'), borderRadius: { topLeft: 8, topRight: 8 }, borderSkipped: false, yAxisID: 'y', order: 2, maxBarThickness: 28 },
         { type: 'line', label: 'Outside', data: days.map(function (r) { return r[6] === '' ? null : r[6]; }), borderColor: C.frost, backgroundColor: C.frost, pointRadius: 2.5, borderWidth: 2, tension: .35, yAxisID: 'y1', order: 1 },
       ]},
-      options: base({ plugins: { legend: { display: false }, tooltip: Object.assign({}, TOOLTIP, { callbacks: { label: function (c) { return c.datasetIndex === 0 ? 'Boiler  ' + hm(c.raw * 60) : 'Outside ' + num(c.raw) + '°'; } } }) },
+      options: base({ plugins: { legend: { display: false }, tooltip: Object.assign({}, TOOLTIP, { callbacks: { label: function (c) { return c.datasetIndex === 0 ? 'Heater  ' + hm(c.raw * 60) : 'Outside ' + num(c.raw) + '°'; } } }) },
         scales: { y: YAX(function (v) { return v + ' h'; }), y1: { position: 'right', border: { display: false }, grid: { display: false }, ticks: { maxTicksLimit: 4, callback: function (v) { return v + '°'; } } }, x: XAX } }),
     }, days.length >= 1);
-    draw('cGas', { type: 'bar', data: { labels: labels, datasets: [{ data: days.map(function (r) { return r[9]; }), backgroundColor: vgrad('#5EEAF7', 'rgba(14,165,233,.42)'), borderRadius: { topLeft: 8, topRight: 8 }, borderSkipped: false, maxBarThickness: 28 }] },
+    draw('cGas', { type: 'bar', data: { labels: labels, datasets: [{ data: days.map(function (r) { return r[9]; }), backgroundColor: partial(vgrad('#5EEAF7', 'rgba(14,165,233,.42)'), 'rgba(94,234,247,.2)'), borderRadius: { topLeft: 8, topRight: 8 }, borderSkipped: false, maxBarThickness: 28 }] },
       options: base({ plugins: { legend: { display: false }, tooltip: Object.assign({}, TOOLTIP, { callbacks: { label: function (c) { var r = days[c.dataIndex]; return num(r[9], 2) + ' m³ · ' + lei(r[10]); } } }) },
         scales: { y: YAX(function (v) { return v + ' m³'; }), x: XAX } }) }, days.length >= 1);
 
-    var todayKey = keyOf(dateOf(DATA.now));
-    var fullDays = days.filter(function (r) { return r[0] !== todayKey; });
-    var withOut = fullDays.filter(function (r) { return r[6] !== '' && r[8] !== ''; });
+    var todayKey = String(DATA.now).slice(0, 10);
+    var fullDays = days.filter(function (r) { return r[0] !== todayKey && full(r); });
+    var withOut = fullDays.filter(function (r) { return isFinite(nv(r[6])) && isFinite(nv(r[8])); });
     draw('cScatter', {
       type: 'scatter',
       data: { datasets: [{ data: withOut.map(function (r) { return { x: r[6], y: r[8], d: r[0] }; }), backgroundColor: 'rgba(255,159,67,.85)', borderColor: C.e1, borderWidth: 1, pointRadius: 5 }] },
@@ -856,27 +891,31 @@
     all.forEach(function (r) {
       var k = String(r[0]).slice(0, 7), x = months[k] || (months[k] = { min: 0, m3: 0, lei: 0, outs: [], n: 0 });
       x.min += Number(r[1]) || 0; x.m3 += Number(r[9]) || 0; x.lei += Number(r[10]) || 0; x.n++;
-      if (r[6] !== '') x.outs.push(Number(r[6]));
+      if (isFinite(nv(r[6]))) x.outs.push(nv(r[6]));
     });
     var mk = Object.keys(months).sort().reverse();
-    el('months').innerHTML = '<tr><th>Month</th><th>Boiler</th><th>Gas</th><th>Cost</th></tr>' +
+    el('months').innerHTML = '<tr><th>Month</th><th>Heater</th><th>Gas</th><th>Cost</th></tr>' +
       (mk.length ? mk.map(function (k) {
         var x = months[k], name = new Date(k + '-01T12:00:00').toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
         var o = x.outs.length ? avg(x.outs) : NaN;
         return '<tr><td><b>' + name + '</b><br><span class="small">' + x.n + ' days' + (isFinite(o) ? ' · <span class="c-frost">' + num(o) + '°</span>' : '') + '</span></td><td class="c-ember">' + hm(x.min) + '</td><td class="c-gas">' + num(x.m3, 1) + ' m³</td><td class="c-amber">' + lei(x.lei) + '</td></tr>';
       }).join('') : '<tr><td colspan="4">No data yet</td></tr>');
 
-    var M = DATA.meter || [], expected = S.kwhPerHour / S.kwhPerM3;
+    var M = DATA.meter || [], expected = S.m3PerHour || S.kwhPerHour / S.kwhPerM3;
     el('meter').innerHTML = M.length ? '<div class="tl">' + M.slice().reverse().map(function (r) {
-      var rate = r.heatMin > 2 ? r.m3 / (r.heatMin / 60) : null;
-      var a = dateOf(r.from), b = dateOf(r.to), sameDay = keyOf(a) === keyOf(b);
+      var known = r.heatMin !== null && r.heatMin !== undefined;
+      var rate = r.test && r.heatMin > 2 ? r.m3 / (r.heatMin / 60) : null; // only a heater-only test can check the calibration
+      var a = dateOf(r.from), b = dateOf(r.to), sameDay = dShort(a) === dShort(b);
       var drift = rate !== null && Math.abs(rate - expected) / expected > 0.15;
+      var detail = !known ? 'Heater time is added within the hour' :
+        r.test || r.heatM3 === undefined ? 'Heater ' + hm(r.heatMin) :
+        'Heating ≈ ' + num(r.heatM3, 2) + ' m³ (' + hm(r.heatMin) + ') · hot water &amp; stove ≈ ' + (r.otherM3 >= 0 ? num(r.otherM3, 2) + ' m³' : '–');
       return '<div class="tl-item"><div class="row"><span class="when">' + dShort(a) + ' ' + tShort(a) + ' → ' + (sameDay ? '' : dShort(b) + ' ') + tShort(b) + '</span><span class="m3">' + num(r.m3, 3) + ' m³</span></div>' +
-        '<div class="small num" style="margin-top:4px">Boiler ' + hm(r.heatMin) + (r.note ? ' · ' + esc(r.note) : '') + '</div>' +
-        (rate !== null ? '<span class="rate ' + (drift ? 'drift' : 'ok') + '">' + num(rate, 2) + ' m³/h' + (drift ? ' · off calibration' : ' · on calibration') + '</span>' : '') + '</div>';
-    }).join('') + '</div>' : '<p class="sub" style="margin:0">Add two readings to compare the meter with the logged boiler time.</p>';
+        '<div class="small num" style="margin-top:4px">' + detail + (r.note ? ' · ' + esc(r.note) : '') + '</div>' +
+        (rate !== null ? '<span class="rate ' + (drift ? 'drift' : 'ok') + '">Heater test · ' + num(rate, 2) + ' m³/h' + (drift ? ' · off calibration' : ' · on calibration') + '</span>' : '') + '</div>';
+    }).join('') + '</div>' : '<p class="sub" style="margin:0">Add two readings to compare the meter with the logged heater time.</p>';
 
-    el('assumptions').textContent = 'Each hour the boiler runs uses about ' + num(S.kwhPerHour / S.kwhPerM3, 2) + ' m³ (' + num(S.kwhPerHour, 1) + ' kWh)' + (S.measured ? ', measured with your meter' : ', an assumption until you measure it') +
+    el('assumptions').textContent = 'Each hour the heater runs uses about ' + num(S.kwhPerHour / S.kwhPerM3, 2) + ' m³ (' + num(S.kwhPerHour, 1) + ' kWh)' + (S.measured ? ', measured with your meter' : ', an assumption until you measure it') +
       '. Gas is priced at ' + num(S.price, 2) + ' lei/kWh incl. VAT, ' + num(S.kwhPerM3, 2) + ' kWh per m³. Outside temperature comes from Open-Meteo for your area.';
   }
 
@@ -905,15 +944,16 @@
     el('hm').addEventListener('click', function (e) { var c = e.target.closest('.c'); if (c) pickCell(c); });
 
     // odometer: digits only, jump to the red part after 5 digits, accept a pasted "03284,089"
-    var whole = el('meterWhole'), dec = el('meterDec');
+    var whole = el('meterWhole'), dec = el('meterDec'), lastLen = 0, force = false;
     whole.addEventListener('input', function () {
       var raw = whole.value.replace(/\s/g, '');
       var p = raw.split(/[.,]/);
       if (p.length > 1) { whole.value = p[0].replace(/\D/g, '').slice(0, 6); dec.value = p[1].replace(/\D/g, '').slice(0, 3); dec.focus(); return; }
       whole.value = raw.replace(/\D/g, '').slice(0, 6);
-      if (whole.value.length >= 5) dec.focus();
+      if (lastLen < 5 && whole.value.length === 5 && whole.selectionStart === 5 && !dec.value) dec.focus(); // not while editing
+      lastLen = whole.value.length; force = false;
     });
-    dec.addEventListener('input', function () { dec.value = dec.value.replace(/\D/g, '').slice(0, 3); });
+    dec.addEventListener('input', function () { dec.value = dec.value.replace(/\D/g, '').slice(0, 3); force = false; });
     dec.addEventListener('keydown', function (e) { if (e.key === 'Backspace' && !dec.value) whole.focus(); });
 
     el('meterForm').addEventListener('submit', function (e) {
@@ -921,16 +961,28 @@
       var w = whole.value.replace(/\D/g, ''), d2 = dec.value.replace(/\D/g, ''), msg = el('meterMsg'), btn = el('meterBtn');
       if (!w) { msg.textContent = 'Type the black digits first, e.g. 03284.'; whole.focus(); return; }
       var v = w + (d2 ? '.' + d2 : '');
+      // catch typos before they spoil the comparison: lower than last time, or an impossible jump
+      var LR = DATA && DATA.lastReading, problem = '';
+      if (LR) {
+        var days = Math.max(0.5, (Date.now() - dateOf(LR.time).getTime()) / 864e5), jump = Number(v) - LR.value;
+        if (jump < 0) problem = 'That’s lower than the last reading (' + meterStr(LR.value) + ').';
+        else if (jump > Math.max(30, 15 * days)) problem = 'That’s ' + num(jump, 0) + ' m³ more than the last reading (' + meterStr(LR.value) + ').';
+      }
+      if (problem && !force) {
+        msg.innerHTML = problem + ' Check the digits, or <button class="btn ghost" type="button" id="forceBtn">save anyway</button>';
+        el('forceBtn').onclick = function () { force = true; btn.click(); };
+        return;
+      }
       btn.disabled = true; btn.textContent = '…'; msg.textContent = 'Saving…';
-      api({ action: 'meter', value: v }).then(function (res) {
-        if (!res.ok) throw new Error(res.error);
+      api({ action: 'meter', value: v, test: el('meterTest').checked, force: force }).then(function (res) {
+        if (!res.ok) throw apiError('script', res.error);
         DATA = res.data; store(DATA_NAME, JSON.stringify(DATA)); render(false);
-        whole.value = ''; dec.value = ''; msg.textContent = 'Saved ' + num(Number(v), 3) + ' m³.';
+        whole.value = ''; dec.value = ''; lastLen = 0; force = false; el('meterTest').checked = false; msg.textContent = 'Saved ' + num(Number(v), 3) + ' m³.';
         btn.classList.add('ok'); btn.innerHTML = CHECK;
         setTimeout(function () { btn.classList.remove('ok'); btn.textContent = 'Save'; }, 1400);
       }).catch(function (err) {
         btn.textContent = 'Save';
-        msg.textContent = 'Not saved: ' + (err && err.message && err.message !== 'failed' ? err.message : 'your Google script didn’t answer.') + ' Your number is still in the boxes.';
+        msg.innerHTML = 'Not saved. ' + why(err) + '. Your number is still in the boxes.';
       }).then(function () { btn.disabled = false; });
     });
   }
